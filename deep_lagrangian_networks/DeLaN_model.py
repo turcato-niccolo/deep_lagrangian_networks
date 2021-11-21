@@ -555,7 +555,7 @@ class DeepLagrangianNetwork(nn.Module):
 
         q, q_dot, q_ddot = Utils.unpack_dataset_joint_variables(input_set, self.n_dof)
 
-        print('Computing estimations...  ', end='')
+        print('Computing estimations...  ', end='', flush=True)
 
         with torch.no_grad():
             q = torch.from_numpy(q).float().to(self.device)
@@ -564,6 +564,6 @@ class DeepLagrangianNetwork(nn.Module):
 
             Y_hat = self.inv_dyn(q, q_dot, q_ddot).cpu().numpy().squeeze()
 
-        print('done!')
+        print('done!', flush=True)
 
         return Y_hat
