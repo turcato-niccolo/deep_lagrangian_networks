@@ -248,7 +248,7 @@ for step_num_data_tr in training_steps:
 
 print(test_results)
 
-efficiency_results = saving_path + 'data_efficienxy_results_pendulum2DOF.pkl'
+efficiency_results = saving_path + 'data_efficiency_results_pendulum2DOF.pkl'
 pickle.dump(test_results, open(efficiency_results, 'wb'))
 
 
