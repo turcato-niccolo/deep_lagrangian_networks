@@ -204,7 +204,7 @@ hyper = {'n_width': 64,
 
 ### DATA EFFICIENCY TEST
 
-#num_data_tr = 2400
+# num_data_tr = 2400
 num_data_tr = X_tr.shape[0]
 print('TRAIN: {}'.format(num_data_tr))
 
@@ -213,16 +213,26 @@ n_steps = 20
 
 k_repetition = 5
 
-
-hyper['n_minibatch'] = int(step_portion*num_data_tr)-1
+hyper['n_minibatch'] = int(step_portion * num_data_tr) - 1
 
 training_steps = [int(num_data_tr * (i + 1) * step_portion) for i in range(n_steps)]
 
 test_results = dict()
+for k in range(k_repetition):
+    test_results[k] = dict()
+    test_results[k]['G_MSE'] = dict()
+    test_results[k]['n_MSE'] = dict()
+
+test_results['MEAN'] = dict()
+test_results['MEAN']['G_MSE'] = dict()
+test_results['MEAN']['n_MSE'] = dict()
 
 for step_num_data_tr in training_steps:
-    g_mse=0
-    for i in range(k_repetition):
+    g_mse = 0
+    n_mse = 0
+    for k in range(k_repetition):
+        n_mse_curr_tr = 0
+        g_mse_curr_tr = 0
         training_idx = np.random.choice(num_data_tr, step_num_data_tr, replace=False)
 
         X = X_tr[training_idx, :]
@@ -241,20 +251,27 @@ for step_num_data_tr in training_steps:
         Y_test_hat = delan_model.evaluate(X_test)
 
         for i in range(num_dof):
-            g_mse += Project_FL_Utils.MSE(Y_test[:, i], Y_test_hat[:, i])
+            g_mse_curr_tr += Project_FL_Utils.MSE(Y_test[:, i], Y_test_hat[:, i])
+            n_mse_curr_tr += Project_FL_Utils.nMSE(Y_test[:, i], Y_test_hat[:, i])
+
+        n_mse_curr_tr /= num_dof
+        n_mse += n_mse_curr_tr  # normalized mse is computed as mean of n_mse between joints
+
+        g_mse += g_mse_curr_tr  # global mse is computed as sum of MSE between joints
+
+        test_results[k]['G_MSE'][step_num_data_tr] = g_mse_curr_tr
+        test_results[k]['n_MSE'][step_num_data_tr] = n_mse_curr_tr
 
     g_mse /= k_repetition
+    n_mse /= k_repetition
 
     print('Global MSE: {}'.format(g_mse))
-    test_results[step_num_data_tr] = g_mse
+    print('nomalized MSE: {}'.format(n_mse))
+
+    test_results['MEAN']['G_MSE'][step_num_data_tr] = g_mse
+    test_results['MEAN']['n_MSE'][step_num_data_tr] = n_mse
 
 print(test_results)
 
 efficiency_results = saving_path + 'data_efficiency_results_pendulum2DOF.pkl'
 pickle.dump(test_results, open(efficiency_results, 'wb'))
-
-
-
-
-
-
