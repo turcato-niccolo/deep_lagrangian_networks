@@ -1,6 +1,5 @@
 """
-Script for training/testing of Deep Lagrangian Network of simulated data of a Panda robot restricted to its first 3
-joints and links.
+Script for Data efficiency evaluation on Deep Lagrangian Networks - 2dof data
 
 Author: Niccolò Turcato (niccolo.turcato@studenti.unipd.it)
 """
@@ -212,36 +211,39 @@ print('TRAIN: {}'.format(num_data_tr))
 step_portion = 0.05
 n_steps = 20
 
-training_steps = []
+k_repetition = 5
+
 
 hyper['n_minibatch'] = int(step_portion*num_data_tr)-1
 
-for i in range(n_steps):
-    select_num_tr = int(num_data_tr * (i+1) * step_portion)
-    training_steps.append(select_num_tr)
+training_steps = [int(num_data_tr * (i + 1) * step_portion) for i in range(n_steps)]
 
 test_results = dict()
 
 for step_num_data_tr in training_steps:
-    training_idx = np.random.choice(num_data_tr, step_num_data_tr, replace=False)
-
-    X = X_tr[training_idx, :]
-    Y = Y_tr[training_idx, :]
-
-    delan_model = DeepLagrangianNetwork(num_dof, **hyper)
-    delan_model = delan_model.cuda(torch.device('cuda:0')) if flg_cuda else delan_model.cpu()
-    optimizer = torch.optim.Adam(delan_model.parameters(),
-                                 lr=hyper["learning_rate"],
-                                 weight_decay=hyper["weight_decay"],
-                                 amsgrad=True)
-    flg_save = False
-
-    train_loss = delan_model.train_model(X, Y, optimizer, save_model=flg_save)
-
-    Y_test_hat = delan_model.evaluate(X_test)
     g_mse=0
-    for i in range(num_dof):
-        g_mse += Project_FL_Utils.MSE(Y_test[:, i], Y_test_hat[:, i])
+    for i in range(k_repetition):
+        training_idx = np.random.choice(num_data_tr, step_num_data_tr, replace=False)
+
+        X = X_tr[training_idx, :]
+        Y = Y_tr[training_idx, :]
+
+        delan_model = DeepLagrangianNetwork(num_dof, **hyper)
+        delan_model = delan_model.cuda(torch.device('cuda:0')) if flg_cuda else delan_model.cpu()
+        optimizer = torch.optim.Adam(delan_model.parameters(),
+                                     lr=hyper["learning_rate"],
+                                     weight_decay=hyper["weight_decay"],
+                                     amsgrad=True)
+        flg_save = False
+
+        train_loss = delan_model.train_model(X, Y, optimizer, save_model=flg_save)
+
+        Y_test_hat = delan_model.evaluate(X_test)
+
+        for i in range(num_dof):
+            g_mse += Project_FL_Utils.MSE(Y_test[:, i], Y_test_hat[:, i])
+
+    g_mse /= k_repetition
 
     print('Global MSE: {}'.format(g_mse))
     test_results[step_num_data_tr] = g_mse
