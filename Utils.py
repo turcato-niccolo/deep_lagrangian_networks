@@ -120,4 +120,4 @@ def k_fold_cross_val_model_selection(num_dof, optimizer_lambda, dataset, targets
         print(f'Average: {avg}')
         results_nmse_models.append(avg)
 
-    return np.argmax(np.array(results_nmse_models))
+    return np.argmin(np.array(results_nmse_models))
