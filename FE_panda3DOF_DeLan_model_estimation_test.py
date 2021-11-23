@@ -126,7 +126,7 @@ locals().update(vars(parser.parse_known_args()[0]))
 flg_train = True
 #flg_train = False
 
-# flg_save = True
+flg_save = True
 
 flg_load = False
 #flg_load = True
@@ -214,10 +214,9 @@ print("Training Deep Lagrangian Networks (DeLaN):")
 #          'weight_decay': 1.e-5,
 #          'max_epoch': 10000,
 #          'save_file': model_saving_path + path_suff + 'delan_panda3DOF_model.torch'}
-hyper = {"n_width": 128, "n_depth": 4, "diagonal_epsilon": 0.01, "activation": "SoftPlus", "b_init": 0.0001,
-         "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
-         "n_minibatch": 512, "learning_rate": 0.01, "weight_decay": 1e-05, "max_epoch": 20000,
-         "activations": "SoftPlus", "w_inits": "xavier_normal"}
+hyper = {'n_width': 128, 'n_depth': 4, 'diagonal_epsilon': 0.01, 'activation': 'ReLu', 'b_init': 0.0001,
+         'b_diag_init': 0.001, 'w_init': 'xavier_normal', 'gain_hidden': 1.4142135623730951, 'gain_output': 0.1,
+         'n_minibatch': 512, 'learning_rate': 0.01, 'weight_decay': 1e-05, 'max_epoch': 10000}
 
 
 # Splitting test-val dataset
@@ -228,7 +227,7 @@ Y_val = Y_tr[Y_tr.shape[0] - val_size:, :]
 X_tr = X_tr[:X_tr.shape[0] - val_size, :]
 Y_tr = Y_tr[:Y_tr.shape[0] - val_size, :]
 
-patience = int(hyper['max_epoch'] / 40)
+patience = int(hyper['max_epoch'] / 400)
 
 early_stopping = EarlyStopping(patience=patience, verbose=False)
 
@@ -263,7 +262,7 @@ if(flg_train):
     plt.plot(train_loss, color='b', label='train loss')
     plt.plot(val_loss, color='g', label='val loss')
     plt.legend()
-    plt.show()
+
 
 test_qp, test_qv, test_qa = Utils.unpack_dataset_joint_variables(X_test, num_dof)
 
@@ -313,6 +312,20 @@ Project_FL_Utils.get_stat_estimate(Y_tr_noiseless_pd, [pd_tr_estimates], joint_i
 Project_FL_Utils.get_stat_estimate(Y_test_noiseless_pd, [pd_test_estimates], joint_index_list, stat_name='nMSE',
                                    output_feature=output_feature)
 
+features = ['tau', 'm', 'c', 'g']
+colors_est_plots = ['b', 'g']
+
+for feat in features:
+    Project_FL_Utils.print_estimate(data_frame_tr, [pd_tr_estimates],
+                                    joint_index_list, flg_print_var=[False],
+                                    output_feature=feat, data_noiseless=None, label_prefix='tr\_', color=colors_est_plots)
+
+    Project_FL_Utils.print_estimate(data_frame_test, [pd_test_estimates],
+                            joint_index_list, flg_print_var=[False],
+                            output_feature=feat, data_noiseless=None, label_prefix='test\_',
+                            color=colors_est_plots)
+
+plt.show()
 
 if flg_save:
     print("Saving estimates...")

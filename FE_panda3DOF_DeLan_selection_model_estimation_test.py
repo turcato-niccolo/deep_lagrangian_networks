@@ -224,11 +224,11 @@ parameters = [
     [2, 3, 4], # n_depth
     ['ReLu', 'SoftPlus', 'Cos'], # activations
     #[1e-3, 5e-3, 1e-2], # b_diag_inits
-    ['xavier_normal', 'orthogonal', 'sparse'], # w_inits
+    ['xavier_normal', 'orthogonal', 'sparse'], # w_init
     #[1e-4, 1e-3, 5e-3, 1e-2, 1e-1] # learning_rates
 ]
 
-parameters_names = ['n_width', 'n_depth', 'activations', 'w_inits']
+parameters_names = ['n_width', 'n_depth', 'activation', 'w_init']
 
 for combination in itertools.product(*parameters):
     hyper = hyper_base.copy()
@@ -299,6 +299,8 @@ plt.plot(train_loss, color='b', label='train loss')
 plt.plot(val_loss, color='g', label='val loss')
 plt.legend()
 
+X_tr = np.vstack((X_tr, X_val))
+Y_tr = np.vstack((Y_tr, Y_val))
 
 delan_model.cpu()
 
@@ -341,6 +343,19 @@ pd_test_estimates = Utils.convert_predictions_to_dataset(np.hstack([delan_test_t
 pd_tr_estimates = Utils.convert_predictions_to_dataset(np.hstack([delan_tr_tau, delan_tr_m, delan_tr_c, delan_tr_g]),
                                                             ['tau_est', 'm_est', 'c_est', 'g_est'], range(num_dof))
 
+
+features = ['tau', 'm', 'c', 'g']
+colors_est_plots = ['b', 'g']
+
+for feat in features:
+    Project_FL_Utils.print_estimate(data_frame_tr, [pd_tr_estimates],
+                                    joint_index_list, flg_print_var=[False],
+                                    output_feature=feat, data_noiseless=None, label_prefix='tr\_', color=colors_est_plots)
+
+    Project_FL_Utils.print_estimate(data_frame_test, [pd_test_estimates],
+                            joint_index_list, flg_print_var=[False],
+                            output_feature=feat, data_noiseless=None, label_prefix='test\_',
+                            color=colors_est_plots)
 
 if flg_save:
     print("Saving estimates...")
