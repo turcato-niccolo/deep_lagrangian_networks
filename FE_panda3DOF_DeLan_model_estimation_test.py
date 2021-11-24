@@ -123,13 +123,13 @@ locals().update(vars(parser.parse_known_args()[0]))
 
 # %%
 # Set flags -- for debug
-flg_train = True
-#flg_train = False
+#flg_train = True
+flg_train = False
 
 flg_save = True
 
-flg_load = False
-#flg_load = True
+#flg_load = False
+flg_load = True
 
 # flg_cuda = False
 flg_cuda = True  # Watch this
@@ -325,7 +325,7 @@ for feat in features:
                             output_feature=feat, data_noiseless=None, label_prefix='test\_',
                             color=colors_est_plots)
 
-plt.show()
+
 
 if flg_save:
     print("Saving estimates...")
@@ -334,3 +334,6 @@ if flg_save:
     print("Done!")
 
 print("\n################################################\n\n\n")
+
+
+plt.show()
