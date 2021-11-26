@@ -123,13 +123,14 @@ locals().update(vars(parser.parse_known_args()[0]))
 
 # %%
 # Set flags -- for debug
-#flg_train = True
-flg_train = False
+flg_train = True
+#flg_train = False
 
 flg_save = True
+#flg_save = False
 
-#flg_load = False
-flg_load = True
+flg_load = False
+#flg_load = True
 
 # flg_cuda = False
 flg_cuda = True  # Watch this
@@ -200,6 +201,8 @@ print("\n################################################")
 print("Training Deep Lagrangian Networks (DeLaN):")
 
 # Construct Hyperparameters:
+# These hyperparameters are the original, used for 2DOF pendulum, models with these hyperparams can potentially fir
+# these data, but results are difficult to reproduce, (a good fit is obtained 1 over k times, with k pretty big)
 # hyper = {'n_width': 64,
 #          'n_depth': 2,
 #          'diagonal_epsilon': 0.01,
@@ -212,12 +215,13 @@ print("Training Deep Lagrangian Networks (DeLaN):")
 #          'n_minibatch': 512,
 #          'learning_rate': 50.e-04,
 #          'weight_decay': 1.e-5,
-#          'max_epoch': 10000,
+#          'max_epoch': 200,
 #          'save_file': model_saving_path + path_suff + 'delan_panda3DOF_model.torch'}
-hyper = {'n_width': 128, 'n_depth': 6, 'diagonal_epsilon': 0.01, 'activation': 'ReLu', 'b_init': 0.0001,
-         'b_diag_init': 0.001, 'w_init': 'xavier_normal', 'gain_hidden': 1.4142135623730951, 'gain_output': 0.1,
-         'n_minibatch': 512, 'learning_rate': 0.01, 'weight_decay': 1e-05, 'max_epoch': 10000}
 
+
+hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "ReLu", "b_init": 0.0001,
+         "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
+         "n_minibatch": 512, "learning_rate": 0.01, "weight_decay": 1e-05, "max_epoch": 200}
 
 # Splitting test-val dataset
 split = 10  # N_train/split samples to val and (Ntrain - N_train/split) to train
@@ -227,7 +231,7 @@ Y_val = Y_tr[Y_tr.shape[0] - val_size:, :]
 X_tr = X_tr[:X_tr.shape[0] - val_size, :]
 Y_tr = Y_tr[:Y_tr.shape[0] - val_size, :]
 
-patience = int(hyper['max_epoch'] / 400)
+patience = int(hyper['max_epoch'] / 4)
 
 early_stopping = EarlyStopping(patience=patience, verbose=False)
 

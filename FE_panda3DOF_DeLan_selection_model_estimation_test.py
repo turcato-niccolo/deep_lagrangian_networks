@@ -215,7 +215,7 @@ hyper_base = {'n_width': 64,
          'n_minibatch': 512,
          'learning_rate': 10.e-03,
          'weight_decay': 1.e-5,
-         'max_epoch': 10000}
+         'max_epoch': 200}
 
 # Define list of hyperparameters
 hyper_list = []
@@ -253,14 +253,13 @@ X, Y = X_tr, Y_tr
 X = X[::downsampling_model_selction]
 Y = Y[::downsampling_model_selction]
 
-patience = int(hyper['max_epoch'] / 400)
+patience = int(hyper['max_epoch'] / 5)
 
-early_stopping = True
 
 # Model selection with all training data
 idx_best_hyper = Utils.k_fold_cross_val_model_selection(num_dof, adam_lambda, X, Y, hyper_list, flg_cuda=flg_cuda,
-                                                        k_folds=2, early_stopping=early_stopping,
-                                                        X_val=X_val, Y_val=Y_val)
+                                                        k_folds=5, early_stopping=True,
+                                                        es_X_val=X_val, es_Y_val=Y_val)
 
 best_hyper = hyper_list[idx_best_hyper].copy()
 best_hyper['max_epoch'] = 20000  # Set the max epoch for the model we decide to train and use
@@ -287,7 +286,7 @@ optimizer = torch.optim.Adam(delan_model.parameters(),
                              weight_decay=best_hyper["weight_decay"],
                              amsgrad=True)
 
-patience = int(hyper['max_epoch'] / 400)
+patience = int(best_hyper['max_epoch'] / 400)
 
 early_stopping = EarlyStopping(patience=patience, verbose=False)
 
