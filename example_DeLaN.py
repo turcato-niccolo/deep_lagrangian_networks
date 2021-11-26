@@ -3,12 +3,16 @@ import torch
 import numpy as np
 import time
 
+import PyQt5
+
 import matplotlib as mp
+
 
 try:
     mp.use("Qt5Agg")
     mp.rc('text', usetex=True)
-    mp.rcParams['text.latex.preamble'] = [r"\usepackage{amsmath}"]
+    #mp.rcParams['text.latex.preamble'] = [r"\usepackage{amsmath}"]
+    mp.rcParams['text.latex.preamble'] = r"\usepackage{bm} \usepackage{amsmath}"
 
 except ImportError:
     pass
@@ -35,9 +39,9 @@ if __name__ == "__main__":
 
     # Read the dataset:
     n_dof = 2
-    train_data, test_data, divider = load_dataset()
-    train_labels, train_qp, train_qv, train_qa, train_tau = train_data
-    test_labels, test_qp, test_qv, test_qa, test_tau, test_m, test_c, test_g = test_data
+    train_data, test_data, divider, _ = load_dataset()
+    train_labels, train_qp, train_qv, train_qa, _, _, train_tau = train_data
+    test_labels, test_qp, test_qv, test_qa, _, _, test_tau, test_m, test_c, test_g = test_data
 
     print("\n\n################################################")
     print("Characters:")
@@ -63,7 +67,7 @@ if __name__ == "__main__":
              'n_minibatch': 512,
              'learning_rate': 5.e-04,
              'weight_decay': 1.e-5,
-             'max_epoch': 10000}
+             'max_epoch': 100}
 
     # Load existing model parameters:
     if load_model:
@@ -79,82 +83,86 @@ if __name__ == "__main__":
         delan_model = DeepLagrangianNetwork(n_dof, **hyper)
         delan_model = delan_model.cuda() if cuda else delan_model.cpu()
 
-    # Generate & Initialize the Optimizer:
-    optimizer = torch.optim.Adam(delan_model.parameters(),
+        # Generate & Initialize the Optimizer:
+        optimizer = torch.optim.Adam(delan_model.parameters(),
                                  lr=hyper["learning_rate"],
                                  weight_decay=hyper["weight_decay"],
                                  amsgrad=True)
 
-    # Generate Replay Memory:
-    mem_dim = ((n_dof, ), (n_dof, ), (n_dof, ), (n_dof, ))
-    mem = PyTorchReplayMemory(train_qp.shape[0], hyper["n_minibatch"], mem_dim, cuda)
-    mem.add_samples([train_qp, train_qv, train_qa, train_tau])
+        delan_model.train_model(np.hstack(train_qp, train_qv, train_qa), train_tau, optimizer)
 
-    # Start Training Loop:
-    t0_start = time.perf_counter()
-
-    epoch_i = 0
-    while epoch_i < hyper['max_epoch'] and not load_model:
-        l_mem_mean_inv_dyn, l_mem_var_inv_dyn = 0.0, 0.0
-        l_mem_mean_dEdt, l_mem_var_dEdt = 0.0, 0.0
-        l_mem, n_batches = 0.0, 0.0
-
-        for q, qd, qdd, tau in mem:
-            t0_batch = time.perf_counter()
-
-            # Reset gradients:
-            optimizer.zero_grad()
-
-            # Compute the Rigid Body Dynamics Model:
-            tau_hat, dEdt_hat = delan_model(q, qd, qdd)
-
-            # Compute the loss of the Euler-Lagrange Differential Equation:
-            err_inv = torch.sum((tau_hat - tau) ** 2, dim=1)
-            l_mean_inv_dyn = torch.mean(err_inv)
-            l_var_inv_dyn = torch.var(err_inv)
-
-            # Compute the loss of the Power Conservation:
-            dEdt = torch.matmul(qd.view(-1, 2, 1).transpose(dim0=1, dim1=2), tau.view(-1, 2, 1)).view(-1)
-            err_dEdt = (dEdt_hat - dEdt) ** 2
-            l_mean_dEdt = torch.mean(err_dEdt)
-            l_var_dEdt = torch.var(err_dEdt)
-
-            # Compute gradients & update the weights:
-            loss = l_mean_inv_dyn + l_mem_mean_dEdt
-            loss.backward()
-            optimizer.step()
-
-            # Update internal data:
-            n_batches += 1
-            l_mem += loss.item()
-            l_mem_mean_inv_dyn += l_mean_inv_dyn.item()
-            l_mem_var_inv_dyn += l_var_inv_dyn.item()
-            l_mem_mean_dEdt += l_mean_dEdt.item()
-            l_mem_var_dEdt += l_var_dEdt.item()
-
-            t_batch = time.perf_counter() - t0_batch
-
-        # Update Epoch Loss & Computation Time:
-        l_mem_mean_inv_dyn /= float(n_batches)
-        l_mem_var_inv_dyn /= float(n_batches)
-        l_mem_mean_dEdt /= float(n_batches)
-        l_mem_var_dEdt /= float(n_batches)
-        l_mem /= float(n_batches)
-        epoch_i += 1
-
-        if epoch_i == 1 or np.mod(epoch_i, 100) == 0:
-            print("Epoch {0:05d}: ".format(epoch_i), end=" ")
-            print("Time = {0:05.1f}s".format(time.perf_counter() - t0_start), end=", ")
-            print("Loss = {0:.3e}".format(l_mem), end=", ")
-            print("Inv Dyn = {0:.3e} \u00B1 {1:.3e}".format(l_mem_mean_inv_dyn, 1.96 * np.sqrt(l_mem_var_inv_dyn)), end=", ")
-            print("Power Con = {0:.3e} \u00B1 {1:.3e}".format(l_mem_mean_dEdt, 1.96 * np.sqrt(l_mem_var_dEdt)))
-
-    # Save the Model:
-    if save_model:
-        torch.save({"epoch": epoch_i,
-                    "hyper": hyper,
-                    "state_dict": delan_model.state_dict()},
-                    "data/delan_model.torch")
+    # # Generate Replay Memory:
+    # mem_dim = ((n_dof, ), (n_dof, ), (n_dof, ), (n_dof, ))
+    # mem = PyTorchReplayMemory(train_qp.shape[0], hyper["n_minibatch"], mem_dim, cuda)
+    # mem.add_samples([train_qp, train_qv, train_qa, train_tau])
+    #
+    # # Start Training Loop:
+    # t0_start = time.perf_counter()
+    #
+    # epoch_i = 0
+    # while epoch_i < hyper['max_epoch'] and not load_model:
+    #     l_mem_mean_inv_dyn, l_mem_var_inv_dyn = 0.0, 0.0
+    #     l_mem_mean_dEdt, l_mem_var_dEdt = 0.0, 0.0
+    #     l_mem, n_batches = 0.0, 0.0
+    #
+    #     for q, qd, qdd, tau in mem:
+    #         t0_batch = time.perf_counter()
+    #
+    #         # Reset gradients:
+    #         optimizer.zero_grad()
+    #
+    #         # Compute the Rigid Body Dynamics Model:
+    #         tau_hat, dEdt_hat = delan_model(q, qd, qdd)
+    #
+    #         # Compute the loss of the Euler-Lagrange Differential Equation:
+    #         err_inv = torch.sum((tau_hat - tau) ** 2, dim=1)
+    #         l_mean_inv_dyn = torch.mean(err_inv)
+    #         l_var_inv_dyn = torch.var(err_inv)
+    #
+    #         # Compute the loss of the Power Conservation:
+    #         dEdt = torch.matmul(qd.view(-1, n_dof, 1).transpose(dim0=1, dim1=2), tau.view(-1, n_dof, 1)).view(-1)
+    #             # previous version
+    #             # dEdt = torch.matmul(qd.view(-1, 2, 1).transpose(dim0=1, dim1=2), tau.view(-1, 2, 1)).view(-1)
+    #         err_dEdt = (dEdt_hat - dEdt) ** 2
+    #         l_mean_dEdt = torch.mean(err_dEdt)
+    #         l_var_dEdt = torch.var(err_dEdt)
+    #
+    #         # Compute gradients & update the weights:
+    #         loss = l_mean_inv_dyn + l_mem_mean_dEdt
+    #         loss.backward()
+    #         optimizer.step()
+    #
+    #         # Update internal data:
+    #         n_batches += 1
+    #         l_mem += loss.item()
+    #         l_mem_mean_inv_dyn += l_mean_inv_dyn.item()
+    #         l_mem_var_inv_dyn += l_var_inv_dyn.item()
+    #         l_mem_mean_dEdt += l_mean_dEdt.item()
+    #         l_mem_var_dEdt += l_var_dEdt.item()
+    #
+    #         t_batch = time.perf_counter() - t0_batch
+    #
+    #     # Update Epoch Loss & Computation Time:
+    #     l_mem_mean_inv_dyn /= float(n_batches)
+    #     l_mem_var_inv_dyn /= float(n_batches)
+    #     l_mem_mean_dEdt /= float(n_batches)
+    #     l_mem_var_dEdt /= float(n_batches)
+    #     l_mem /= float(n_batches)
+    #     epoch_i += 1
+    #
+    #     if epoch_i == 1 or np.mod(epoch_i, 100) == 0:
+    #         print("Epoch {0:05d}: ".format(epoch_i), end=" ")
+    #         print("Time = {0:05.1f}s".format(time.perf_counter() - t0_start), end=", ")
+    #         print("Loss = {0:.3e}".format(l_mem), end=", ")
+    #         print("Inv Dyn = {0:.3e} \u00B1 {1:.3e}".format(l_mem_mean_inv_dyn, 1.96 * np.sqrt(l_mem_var_inv_dyn)), end=", ")
+    #         print("Power Con = {0:.3e} \u00B1 {1:.3e}".format(l_mem_mean_dEdt, 1.96 * np.sqrt(l_mem_var_dEdt)))
+    #
+    # # Save the Model:
+    # if save_model:
+    #     torch.save({"epoch": epoch_i,
+    #                 "hyper": hyper,
+    #                 "state_dict": delan_model.state_dict()},
+    #                 "data/delan_model.torch")
 
     print("\n################################################")
     print("Evaluating DeLaN:")
@@ -244,7 +252,8 @@ if __name__ == "__main__":
 
     fig = plt.figure(figsize=(24.0/1.54, 8.0/1.54), dpi=100)
     fig.subplots_adjust(left=0.08, bottom=0.12, right=0.98, top=0.95, wspace=0.3, hspace=0.2)
-    fig.canvas.set_window_title('Seed = {0}'.format(seed))
+    #fig.canvas.set_window_title('Seed = {0}'.format(seed))
+    fig.canvas.manager.set_window_title('Seed = {0}'.format(seed))
 
     legend = [mp.patches.Patch(color=color_i[0], label="DeLaN"),
               mp.patches.Patch(color="k", label="Ground Truth")]
