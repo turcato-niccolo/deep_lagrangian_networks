@@ -11,7 +11,7 @@ Edited by Niccolò Turcato (niccolo.turcato@studenti.unipd.it)
 
 from torch._C import device
 
-import robust_fl_with_gps.Project_Utils as Project_FL_Utils
+import Project_FL_Utils as Project_FL_Utils
 import torch
 import torch.utils.data
 import numpy as np

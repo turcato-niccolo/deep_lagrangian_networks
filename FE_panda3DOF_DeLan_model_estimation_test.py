@@ -7,7 +7,7 @@ Author: Niccolò Turcato (niccolo.turcato@studenti.unipd.it)
 from matplotlib import pyplot as plt
 
 import Utils
-import robust_fl_with_gps.Project_Utils as Project_FL_Utils
+import Project_FL_Utils as Project_FL_Utils
 
 import argparse
 import torch
