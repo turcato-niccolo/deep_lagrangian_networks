@@ -53,7 +53,7 @@ parser.add_argument('-robot_name',
                     help='Name of the robot.')
 parser.add_argument('-data_path',
                     type=str,
-                    default='./robust_fl_with_gps/Simulated_robots/SympyBotics_sim/FE_panda/',
+                    default='FE_panda3DOF_tr_test_data/',
                     help='Path to the folder containing training and test dasets.')
 parser.add_argument('-saving_path',
                     type=str,
@@ -169,6 +169,7 @@ pos_indices = range(0, num_dof)
 acc_indices = range(2 * num_dof, 3 * num_dof)
 input_features_joint_list = [input_features] * num_dof
 
+# Data obtained by simulation on Sympybotics of a FE Panda restricted to its first 3 joints.
 X_tr, Y_tr, active_dims_list, data_frame_tr = Project_FL_Utils.get_data_from_features(tr_path,
                                                                                       input_features,
                                                                                       input_features_joint_list,
@@ -201,27 +202,30 @@ print("\n################################################")
 print("Training Deep Lagrangian Networks (DeLaN):")
 
 # Construct Hyperparameters:
-# These hyperparameters are the original, used for 2DOF pendulum, models with these hyperparams can potentially fir
+# These hyperparameters are the original, used for 2DOF pendulum, models with these hyperparams can potentially fit
 # these data, but results are difficult to reproduce, (a good fit is obtained 1 over k times, with k pretty big)
-# hyper = {'n_width': 64,
-#          'n_depth': 2,
-#          'diagonal_epsilon': 0.01,
-#          'activation': 'SoftPlus',
-#          'b_init': 1.e-4,
-#          'b_diag_init': 0.001,
-#          'w_init': 'orthogonal',
-#          'gain_hidden': np.sqrt(2.),
-#          'gain_output': 0.1,
-#          'n_minibatch': 512,
-#          'learning_rate': 50.e-04,
-#          'weight_decay': 1.e-5,
-#          'max_epoch': 200,
-#          'save_file': model_saving_path + path_suff + 'delan_panda3DOF_model.torch'}
+# For this reason the model selection does not select this model.
+hyper = {'n_width': 64,
+         'n_depth': 2,
+         'diagonal_epsilon': 0.01,
+         'activation': 'SoftPlus',
+         'b_init': 1.e-4,
+         'b_diag_init': 0.001,
+         'w_init': 'orthogonal',
+         'gain_hidden': np.sqrt(2.),
+         'gain_output': 0.1,
+         'n_minibatch': 512,
+         'learning_rate': 50.e-04,
+         'weight_decay': 1.e-5,
+         'max_epoch': 200}
 
 
-hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "ReLu", "b_init": 0.0001,
-         "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
-         "n_minibatch": 512, "learning_rate": 0.01, "weight_decay": 1e-05, "max_epoch": 200}
+# Hyperparameters selected with model selection based on K-fold cross validation, give a good and reproducible fit, but
+# the estimated function is heavily discontinuous, test results are a little worse than original NN.
+
+# hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "ReLu", "b_init": 0.0001,
+#          "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
+#          "n_minibatch": 512, "learning_rate": 0.01, "weight_decay": 1e-05, "max_epoch": 200}
 
 # Splitting test-val dataset
 split = 10  # N_train/split samples to val and (Ntrain - N_train/split) to train
