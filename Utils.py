@@ -178,6 +178,7 @@ def data_efficiency_test(hyperparams, X_tr, Y_tr, X_test, Y_test, step_portion=0
         for k in range(k_repetition):
             n_mse_curr_tr = 0
             g_mse_curr_tr = 0
+            np.random.seed(k+1)
             training_idx = np.random.choice(num_data_tr, step_num_data_tr, replace=False)
 
             X = X_tr[training_idx, :]

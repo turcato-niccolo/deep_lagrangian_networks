@@ -183,7 +183,8 @@ hyper = {'n_width': 64,
          'gain_hidden': np.sqrt(2.),
          'gain_output': 0.1,
          'learning_rate': 5.e-04,
-         'weight_decay': 1.e-5}
+         'weight_decay': 1.e-5,
+         'max_epoch': 100}
 
 max_epoch_last_model = 100
 
@@ -194,7 +195,7 @@ num_data_tr = X_tr.shape[0]
 print('TRAIN: {}'.format(num_data_tr))
 
 #CALL function
-test_results = Utils.data_efficiency_test(hyper, X_tr, Y, X_test, Y_test)
+test_results = Utils.data_efficiency_test(hyper, X_tr, Y_tr, X_test, Y_test)
 
 print(test_results)
 
