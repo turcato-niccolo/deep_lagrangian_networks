@@ -3,6 +3,7 @@ Script for Data efficiency evaluation on Deep Lagrangian Networks - 2dof data
 
 Author: Niccolò Turcato (niccolo.turcato@studenti.unipd.it)
 """
+import math
 import pickle
 from collections import defaultdict
 
@@ -133,7 +134,6 @@ flg_cuda = True
 downsampling = 1
 num_threads = 4
 N_epoch = 500
-batch_size = 512
 norm_coeff = 1
 dtype = torch.float64
 
@@ -197,10 +197,10 @@ hyper = {'n_width': 64,
          'w_init': 'xavier_normal',
          'gain_hidden': np.sqrt(2.),
          'gain_output': 0.1,
-         'n_minibatch': 512,
          'learning_rate': 5.e-04,
-         'weight_decay': 1.e-5,
-         'max_epoch': 200}
+         'weight_decay': 1.e-5}
+
+max_epoch_last_model = 100
 
 ### DATA EFFICIENCY TEST
 
@@ -213,7 +213,9 @@ n_steps = 20
 
 k_repetition = 5
 
-hyper['n_minibatch'] = int(step_portion * num_data_tr) - 1
+hyper['n_minibatch'] = math.floor(step_portion * num_data_tr)
+
+total_max_iter = math.floor(num_data_tr / hyper['n_minibatch']) * max_epoch_last_model
 
 training_steps = [int(num_data_tr * (i + 1) * step_portion) for i in range(n_steps)]
 
@@ -227,7 +229,14 @@ test_results['MEAN'] = dict()
 test_results['MEAN']['G_MSE'] = dict()
 test_results['MEAN']['n_MSE'] = dict()
 
+epochs=[]
+
 for step_num_data_tr in training_steps:
+    num_iterations_per_epoch = step_num_data_tr / hyper['n_minibatch']
+    max_epoch = math.ceil(total_max_iter / num_iterations_per_epoch)
+    hyper['max_epoch'] = max_epoch
+    epochs.append(max_epoch)
+
     g_mse = 0
     n_mse = 0
     for k in range(k_repetition):
@@ -272,6 +281,8 @@ for step_num_data_tr in training_steps:
     test_results['MEAN']['n_MSE'][step_num_data_tr] = n_mse
 
 print(test_results)
+print("Max epochs per trainin set size :")
+print(epochs)
 
 efficiency_results = saving_path + 'data_efficiency_results_pendulum2DOF.pkl'
 pickle.dump(test_results, open(efficiency_results, 'wb'))
