@@ -3,28 +3,13 @@ Script for Data efficiency evaluation on Deep Lagrangian Networks - 2dof data
 
 Author: Niccolò Turcato (niccolo.turcato@studenti.unipd.it)
 """
-import math
 import pickle
-from collections import defaultdict
-
-from matplotlib import pyplot as plt
-
 import Utils
 import robust_fl_with_gps.Project_Utils as Project_FL_Utils
 
 import argparse
 import torch
 import numpy as np
-import time
-import pickle as pkl
-
-import PyQt5
-
-import matplotlib as mp
-
-from deep_lagrangian_networks.DeLaN_model import DeepLagrangianNetwork
-from deep_lagrangian_networks.replay_memory import PyTorchReplayMemory
-from pytorchtools import EarlyStopping
 
 data_path = ""
 training_file = ""
@@ -208,81 +193,11 @@ max_epoch_last_model = 100
 num_data_tr = X_tr.shape[0]
 print('TRAIN: {}'.format(num_data_tr))
 
-step_portion = 0.05
-n_steps = 20
-
-k_repetition = 5
-
-hyper['n_minibatch'] = math.floor(step_portion * num_data_tr)
-
-total_max_iter = math.floor(num_data_tr / hyper['n_minibatch']) * max_epoch_last_model
-
-training_steps = [int(num_data_tr * (i + 1) * step_portion) for i in range(n_steps)]
-
-test_results = dict()
-for k in range(k_repetition):
-    test_results[k] = dict()
-    test_results[k]['G_MSE'] = dict()
-    test_results[k]['n_MSE'] = dict()
-
-test_results['MEAN'] = dict()
-test_results['MEAN']['G_MSE'] = dict()
-test_results['MEAN']['n_MSE'] = dict()
-
-epochs=[]
-
-for step_num_data_tr in training_steps:
-    num_iterations_per_epoch = step_num_data_tr / hyper['n_minibatch']
-    max_epoch = math.ceil(total_max_iter / num_iterations_per_epoch)
-    hyper['max_epoch'] = max_epoch
-    epochs.append(max_epoch)
-
-    g_mse = 0
-    n_mse = 0
-    for k in range(k_repetition):
-        n_mse_curr_tr = 0
-        g_mse_curr_tr = 0
-        training_idx = np.random.choice(num_data_tr, step_num_data_tr, replace=False)
-
-        X = X_tr[training_idx, :]
-        Y = Y_tr[training_idx, :]
-
-        delan_model = DeepLagrangianNetwork(num_dof, **hyper)
-        delan_model = delan_model.cuda(torch.device('cuda:0')) if flg_cuda else delan_model.cpu()
-        optimizer = torch.optim.Adam(delan_model.parameters(),
-                                     lr=hyper["learning_rate"],
-                                     weight_decay=hyper["weight_decay"],
-                                     amsgrad=True)
-        flg_save = False
-
-        train_loss = delan_model.train_model(X, Y, optimizer, save_model=flg_save)
-
-        Y_test_hat = delan_model.evaluate(X_test)
-
-        for i in range(num_dof):
-            g_mse_curr_tr += Project_FL_Utils.MSE(Y_test[:, i], Y_test_hat[:, i])
-            n_mse_curr_tr += Project_FL_Utils.nMSE(Y_test[:, i], Y_test_hat[:, i])
-
-        n_mse_curr_tr /= num_dof
-        n_mse += n_mse_curr_tr  # normalized mse is computed as mean of n_mse between joints
-
-        g_mse += g_mse_curr_tr  # global mse is computed as sum of MSE between joints
-
-        test_results[k]['G_MSE'][step_num_data_tr] = g_mse_curr_tr
-        test_results[k]['n_MSE'][step_num_data_tr] = n_mse_curr_tr
-
-    g_mse /= k_repetition
-    n_mse /= k_repetition
-
-    print('Global MSE: {}'.format(g_mse))
-    print('nomalized MSE: {}'.format(n_mse))
-
-    test_results['MEAN']['G_MSE'][step_num_data_tr] = g_mse
-    test_results['MEAN']['n_MSE'][step_num_data_tr] = n_mse
+#CALL function
+test_results = Utils.data_efficiency_test(hyper, X_tr, Y, X_test, Y_test)
 
 print(test_results)
-print("Max epochs per trainin set size :")
-print(epochs)
+
 
 efficiency_results = saving_path + 'data_efficiency_results_pendulum2DOF.pkl'
 pickle.dump(test_results, open(efficiency_results, 'wb'))
