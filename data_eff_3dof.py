@@ -118,7 +118,7 @@ flg_norm = True
 flg_cuda = True
 # flg_cuda = True  # Watch this
 
-downsampling = 1
+downsampling = 10
 num_threads = 4
 N_epoch = 500
 norm_coeff = 1
@@ -127,7 +127,7 @@ dtype = torch.float64
 # Set the paths
 print('Setting paths... ', end='')
 
-path_suff = '_data_eff'
+path_suff = ''
 
 # Datasets loading paths
 tr_path = data_path + training_file
@@ -169,6 +169,12 @@ X_test, Y_test, _, data_frame_test = Project_FL_Utils.get_data_from_features(tes
                                                                              input_features_joint_list,
                                                                              output_feature,
                                                                              num_dof)
+if downsampling > 1:
+    path_suff += "downsampling_" + str(downsampling)
+    print('## Downsampling training signals... ', end='')
+    X_tr = X_tr[::downsampling]
+    Y_tr = Y_tr[::downsampling]
+    print('Done!')
 
 # Training Parameters:
 print("\n################################################")
@@ -204,5 +210,5 @@ test_results = Utils.data_efficiency_test(hyper, X_tr, Y_tr, X_test, Y_test)
 print(test_results)
 
 
-efficiency_results = saving_path + 'data_efficiency_results_{}.pkl'.format(robot_name)
+efficiency_results = saving_path + path_suff + 'data_efficiency_results_{}.pkl'.format(robot_name)
 pickle.dump(test_results, open(efficiency_results, 'wb'))
