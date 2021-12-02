@@ -426,8 +426,6 @@ class DeepLagrangianNetwork(nn.Module):
             val_losses = []
 
         # Start Training Loop:
-        t0_start = time.perf_counter()
-
         pbar = tqdm(range(self._max_epoch), desc="Training DeLaN")
         for epoch_i in pbar:
             l_mem_mean_inv_dyn, l_mem_var_inv_dyn = 0.0, 0.0
@@ -435,8 +433,6 @@ class DeepLagrangianNetwork(nn.Module):
             l_mem, n_batches = 0.0, 0.0
 
             for q, qd, qdd, tau in mem_train:
-                t0_batch = time.perf_counter()
-
                 # Reset gradients:
                 optimizer.zero_grad()
 
@@ -470,7 +466,6 @@ class DeepLagrangianNetwork(nn.Module):
                 l_mem_mean_dEdt += l_mean_dEdt.item()
                 l_mem_var_dEdt += l_var_dEdt.item()
 
-                t_batch = time.perf_counter() - t0_batch
 
             # Update Epoch Loss & Computation Time:
             l_mem_mean_inv_dyn /= float(n_batches)
@@ -485,7 +480,6 @@ class DeepLagrangianNetwork(nn.Module):
             if not (X_val is None or Y_val is None):
                 with torch.no_grad():
                     for q, qd, qdd, tau in mem_val:
-                        t0_batch = time.perf_counter()
 
                         # Compute the Rigid Body Dynamics Model:
                         tau_hat, dEdt_hat = self(q, qd, qdd)
@@ -508,8 +502,7 @@ class DeepLagrangianNetwork(nn.Module):
                 val_losses.append(l_val_mem)
 
             # if epoch_i == 1 or np.mod(epoch_i + 1, 100) == 0:
-            info = "Epoch {0:05d}: ".format(epoch_i + 1) + ", Time = {0:05.1f}s".format(time.perf_counter() - t0_start) \
-                   + ", Loss = {0:.3e}".format(l_mem) \
+            info = "Epoch {0:05d}: ".format(epoch_i + 1) + "Loss = {0:.3e}".format(l_mem) \
                    + ", Inv Dyn = {0:.3e} \u00B1 {1:.3e}".format(l_mem_mean_inv_dyn,
                                                                  1.96 * np.sqrt(l_mem_var_inv_dyn)) \
                    + ", Power Con = {0:.3e} \u00B1 {1:.3e}".format(l_mem_mean_dEdt, 1.96 * np.sqrt(l_mem_var_dEdt))

@@ -169,6 +169,7 @@ def data_efficiency_test(hyperparams, X_tr, Y_tr, X_test, Y_test, step_portion=0
 
 
     for step_num_data_tr in training_steps:
+        print("Training with {} samples".format(step_num_data_tr))
         num_iterations_per_epoch = step_num_data_tr / hyperparams['n_minibatch']
         max_epoch = math.ceil(total_max_iter / num_iterations_per_epoch)
         hyperparams['max_epoch'] = max_epoch

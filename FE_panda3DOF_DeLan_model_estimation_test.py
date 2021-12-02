@@ -214,10 +214,9 @@ print("Training Deep Lagrangian Networks (DeLaN):")
 #          'weight_decay': 1.e-5,
 #          'max_epoch': 10000,
 #          'save_file': model_saving_path + path_suff + 'delan_panda3DOF_model.torch'}
-hyper = {"n_width": 128, "n_depth": 4, "diagonal_epsilon": 0.01, "activation": "SoftPlus", "b_init": 0.0001,
+hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "ReLu", "b_init": 0.0001,
          "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
-         "n_minibatch": 512, "learning_rate": 0.01, "weight_decay": 1e-05, "max_epoch": 20000,
-         "activations": "SoftPlus", "w_inits": "xavier_normal"}
+         "n_minibatch": 512, "learning_rate": 0.01, "weight_decay": 1e-05, "max_epoch": 150}
 
 
 # Splitting test-val dataset
@@ -228,7 +227,7 @@ Y_val = Y_tr[Y_tr.shape[0] - val_size:, :]
 X_tr = X_tr[:X_tr.shape[0] - val_size, :]
 Y_tr = Y_tr[:Y_tr.shape[0] - val_size, :]
 
-patience = int(hyper['max_epoch'] / 40)
+patience = int(hyper['max_epoch'] / 4)
 
 early_stopping = EarlyStopping(patience=patience, verbose=False)
 
@@ -242,7 +241,8 @@ if flg_train:
                                  weight_decay=hyper["weight_decay"],
                                  amsgrad=True)
 
-    train_loss, val_loss = delan_model.train_model(X_tr, Y_tr, optimizer, save_model=flg_save, early_stopping=early_stopping, X_val=X_val, Y_val=Y_val)
+    train_loss, val_loss = delan_model.train_model(X_tr, Y_tr, optimizer, save_model=flg_save,
+                                                   early_stopping=early_stopping, X_val=X_val, Y_val=Y_val)
 
 elif flg_load:
     state = torch.load(hyper['save_file'])
