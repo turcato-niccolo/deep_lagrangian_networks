@@ -421,7 +421,7 @@ class DeepLagrangianNetwork(nn.Module):
         if not (X_val is None or Y_val is None):
             # Unpack the validation dataset
             val_q, val_qv, val_qa = Utils.unpack_dataset_joint_variables(X_val, self.n_dof)
-            mem_val = PyTorchReplayMemory(val_q.shape[0], self._n_minibatch, mem_dim, self.cuda)
+            mem_val = PyTorchReplayMemory(val_q.shape[0], min(self._n_minibatch, X_val.shape[0]), mem_dim, self.cuda)
             mem_val.add_samples([val_q, val_qv, val_qa, Y_val])
             val_losses = []
 
@@ -466,7 +466,6 @@ class DeepLagrangianNetwork(nn.Module):
                 l_mem_mean_dEdt += l_mean_dEdt.item()
                 l_mem_var_dEdt += l_var_dEdt.item()
 
-
             # Update Epoch Loss & Computation Time:
             l_mem_mean_inv_dyn /= float(n_batches)
             l_mem_var_inv_dyn /= float(n_batches)
@@ -480,7 +479,6 @@ class DeepLagrangianNetwork(nn.Module):
             if not (X_val is None or Y_val is None):
                 with torch.no_grad():
                     for q, qd, qdd, tau in mem_val:
-
                         # Compute the Rigid Body Dynamics Model:
                         tau_hat, dEdt_hat = self(q, qd, qdd)
 

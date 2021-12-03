@@ -167,7 +167,6 @@ def data_efficiency_test(hyperparams, X_tr, Y_tr, X_test, Y_test, step_portion=0
     test_results['MEAN']['G_MSE'] = dict()
     test_results['MEAN']['n_MSE'] = dict()
 
-
     for step_num_data_tr in training_steps:
         print("Training with {} samples".format(step_num_data_tr))
         num_iterations_per_epoch = step_num_data_tr / hyperparams['n_minibatch']
@@ -179,7 +178,7 @@ def data_efficiency_test(hyperparams, X_tr, Y_tr, X_test, Y_test, step_portion=0
         for k in range(k_repetition):
             n_mse_curr_tr = 0
             g_mse_curr_tr = 0
-            np.random.seed(k+1)
+            np.random.seed(k + 1)
             training_idx = np.random.choice(num_data_tr, step_num_data_tr, replace=False)
 
             X = X_tr[training_idx, :]
@@ -218,5 +217,18 @@ def data_efficiency_test(hyperparams, X_tr, Y_tr, X_test, Y_test, step_portion=0
         test_results['MEAN']['G_MSE'][step_num_data_tr] = g_mse
         test_results['MEAN']['n_MSE'][step_num_data_tr] = n_mse
 
-
     return test_results
+
+
+def noising_signals(tau, std_noise, mean_noise):
+    """
+    Applies random Gaussian Noise to the signal
+
+    :param tau:         Input signal (#samples x dof)
+    :param std_noise:   Std dev to use for gaussian noise noise
+    :param mean_noise   Means for the Gaussian Noise
+    :return: The signal + noise
+    """
+    noise = np.random.normal(mean_noise, std_noise, tau.shape)
+
+    return tau + noise

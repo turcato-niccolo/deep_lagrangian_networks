@@ -96,11 +96,11 @@ Y_tr_noised = Utils.noising_signals(Y_tr, train_noise_std, train_noise_mean)
 
 tau_test_std = [np.std(Y_test[:, i]) for i in range(num_dof)]
 test_noise_std = np.array(tau_test_std) * noise_scale_factor
-test_noise_mean = np.zeros_like(train_noise_std)
+test_noise_mean = np.zeros_like(test_noise_std)
 
 print('Adding Gaussian Noise (mean: {0}, std: {1}) to test data'.format(test_noise_mean, test_noise_std))
 
-Y_test_noised = Utils.noising_signals(Y_test, test_noise_std, test_noise_mean)
+Y_test_noised = Utils.noising_signals(Y_test, train_noise_std, test_noise_mean)
 
 for i in range(num_dof):
     plt.figure()
