@@ -3,7 +3,7 @@ Script for Data efficiency evaluation on Deep Lagrangian Networks - 3dof data
 
 Author: Niccolò Turcato (niccolo.turcato@studenti.unipd.it)
 """
-import pickle
+import pickle as pkl
 import Utils
 import robust_fl_with_gps.Project_Utils as Project_FL_Utils
 
@@ -23,6 +23,7 @@ flg_train = None
 shuffle = 0
 N_epoch_print = 0
 flg_save = 0
+noised_targets_file = ""
 
 path='robust_fl_with_gps/Simulated_robots/SympyBotics_sim/FE_panda/FE_panda_sim_tr.pkl'
 # %%
@@ -52,6 +53,10 @@ parser.add_argument('-test_file',
                     type=str,
                     default='FE_panda3DOF_sim_test.pkl',
                     help='Name of the file containing the test dataset.')
+parser.add_argument('-noised_targets_file',
+                    type=str,
+                    default='FE_panda3DOF_sim_train_test_targets_noised.pkl',
+                    help='Name of the file containing the noised targets.')
 parser.add_argument('-flg_load',
                     type=bool,
                     default=False,
@@ -64,6 +69,10 @@ parser.add_argument('-flg_train',
                     type=bool,
                     default=True,
                     help='Flag train. If True the model parameters are trained.')
+parser.add_argument('-flg_noise',
+                    type=bool,
+                    default=False,
+                    help='Set the device type')
 parser.add_argument('-batch_size',
                     type=int,
                     default=512,
@@ -113,7 +122,9 @@ flg_save = True
 # flg_load = False
 flg_load = True
 
-flg_norm = True
+flg_noise = True
+# flg_noise = False
+
 
 flg_cuda = True
 # flg_cuda = True  # Watch this
@@ -169,6 +180,14 @@ X_test, Y_test, _, data_frame_test = Project_FL_Utils.get_data_from_features(tes
                                                                              input_features_joint_list,
                                                                              output_feature,
                                                                              num_dof)
+
+if flg_noise:
+    noised_targets_file = data_path + noised_targets_file
+    Y_tr_noised, Y_test_noised = pkl.load(open(noised_targets_file, 'rb'))
+    Y_tr = Y_tr_noised
+    Y_test = Y_test_noised
+    path_suff += 'noised_'
+
 if downsampling > 1:
     path_suff += "downsampling_" + str(downsampling)
     print('## Downsampling training signals... ', end='')
@@ -211,4 +230,4 @@ print(test_results)
 
 
 efficiency_results = saving_path + path_suff + 'data_efficiency_results_{}.pkl'.format(robot_name)
-pickle.dump(test_results, open(efficiency_results, 'wb'))
+pkl.dump(test_results, open(efficiency_results, 'wb'))
