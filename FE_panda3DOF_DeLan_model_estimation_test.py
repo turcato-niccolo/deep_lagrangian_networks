@@ -46,7 +46,7 @@ N_epoch_print = 0
 flg_save = 0
 # %%
 # Set command line arguments
-parser = argparse.ArgumentParser('FE panda GIP estimator')
+parser = argparse.ArgumentParser('FE panda 3DOF DeLaN estimator')
 parser.add_argument('-robot_name',
                     type=str,
                     default='FE_panda3DOF_sim_',

@@ -4,12 +4,16 @@ Script for Data efficiency evaluation on Deep Lagrangian Networks - 2dof data
 Author: Niccolò Turcato (niccolo.turcato@studenti.unipd.it)
 """
 import pickle
+
+from matplotlib import pyplot as plt
+
 import Utils
 import robust_fl_with_gps.Project_Utils as Project_FL_Utils
 
 import argparse
 import torch
 import numpy as np
+import pickle as pkl
 
 data_path = ""
 training_file = ""
@@ -23,6 +27,7 @@ flg_train = None
 shuffle = 0
 N_epoch_print = 0
 flg_save = 0
+noised_targets_file = ''
 # %%
 # Set command line arguments
 parser = argparse.ArgumentParser('Data efficiency test on 2DOF data')
@@ -34,6 +39,10 @@ parser.add_argument('-data_path',
                     type=str,
                     default='robust_fl_with_gps/Real_robots/',
                     help='Path to the folder containing training and test dasets.')
+parser.add_argument('-noised_targets_file',
+                    type=str,
+                    default='pendulum_2DOF_sim_train_test_targets_noised.pkl',
+                    help='Name of the file containing the noised targets.')
 parser.add_argument('-saving_path',
                     type=str,
                     default='data_efficiency/',
@@ -86,6 +95,10 @@ parser.add_argument('-flg_cuda',
                     type=bool,
                     default=False,
                     help='Set the device type')
+parser.add_argument('-flg_noise',
+                    type=bool,
+                    default=False,
+                    help='Set the device type')
 parser.add_argument('-num_data_tr',
                     type=int,
                     default=None,
@@ -116,6 +129,9 @@ flg_norm = True
 flg_cuda = True
 # flg_cuda = True  # Watch this
 
+flg_noise = True
+# flg_noise = False
+
 downsampling = 1
 num_threads = 4
 N_epoch = 500
@@ -125,7 +141,7 @@ dtype = torch.float64
 # Set the paths
 print('Setting paths... ', end='')
 
-path_suff = '_data_eff'
+path_suff = ''
 
 # Datasets loading paths
 tr_path = data_path + training_file
@@ -186,6 +202,35 @@ hyper = {'n_width': 64,
          'weight_decay': 1.e-5,
          'max_epoch': 100}
 
+if downsampling > 1:
+    path_suff += "downsampling_" + str(downsampling)
+    print('## Downsampling training signals... ', end='')
+    X_tr = X_tr[::downsampling]
+    Y_tr = Y_tr[::downsampling]
+    print('Done!')
+
+if flg_noise:
+    noised_targets_file = data_path + noised_targets_file
+    Y_tr_noised, Y_test_noised = pkl.load(open(noised_targets_file, 'rb'))
+
+    path_suff += 'noised_'
+
+    # for i in range(num_dof):
+    #     plt.figure()
+    #     plt.title('Comparison torque and noised torque of joint {} of Train set'.format(i + 1))
+    #     plt.plot(Y_tr_noised[:, i], label='noised signal')
+    #     plt.plot(Y_tr[:, i], label='signal')
+    #     plt.legend()
+    #
+    # for i in range(num_dof):
+    #     plt.figure()
+    #     plt.title('Comparison torque and noised torque of joint {} of Test set'.format(i + 1))
+    #     plt.plot(Y_test_noised[:, i], label='noised signal')
+    #     plt.plot(Y_test[:, i], label='signal')
+    #     plt.legend()
+    #
+    # plt.show()
+
 max_epoch_last_model = 100
 
 ### DATA EFFICIENCY TEST
@@ -194,11 +239,13 @@ max_epoch_last_model = 100
 num_data_tr = X_tr.shape[0]
 print('TRAIN: {}'.format(num_data_tr))
 
-#CALL function
-test_results = Utils.data_efficiency_test(hyper, X_tr, Y_tr, X_test, Y_test)
+# CALL function
+if flg_noise:
+    test_results = Utils.data_efficiency_test(hyper, X_tr, Y_tr_noised, X_test, Y_test_noised)
+else:
+    test_results = Utils.data_efficiency_test(hyper, X_tr, Y_tr, X_test, Y_test)
 
 print(test_results)
 
-
-efficiency_results = saving_path + 'data_efficiency_results_pendulum2DOF.pkl'
+efficiency_results = saving_path + path_suff + 'data_efficiency_results_{}.pkl'.format(robot_name)
 pickle.dump(test_results, open(efficiency_results, 'wb'))

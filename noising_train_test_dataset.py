@@ -41,6 +41,11 @@ parser.add_argument('-flg_save',
 locals().update(vars(parser.parse_known_args()[0]))
 
 print('Setting paths... ', end='')
+robot_name = 'FE_panda3DOF'
+data_path = './robust_fl_with_gps/Simulated_robots/SympyBotics_sim/FE_panda/'
+test_file = 'FE_panda3DOF_sim_test.pkl'
+saving_path = data_path
+training_file = 'FE_panda3DOF_sim_tr.pkl'
 
 # Datasets loading paths
 tr_path = data_path + training_file
@@ -50,7 +55,7 @@ path_suff = ''
 # Set robot params
 print('Setting robot parameters... ', end='')
 
-num_dof = 2
+num_dof = 3
 joint_index_list = range(0, num_dof)
 robot_structure = [0] * num_dof  # 0 = revolute, 1 = prismatic
 joint_names = [str(joint_index) for joint_index in range(1, num_dof + 1)]
@@ -83,11 +88,13 @@ X_test, Y_test, active_dims_list, data_frame_test = Project_FL_Utils.get_data_fr
                                                                                             input_features_joint_list,
                                                                                             output_feature,
                                                                                             num_dof)
-
-noise_scale_factor = 5e-2
+# 2DOF - trainSF = testSF = 5e-2
+# 3DOF - SF =
+train_noise_scale_factor = 1e-2
+test_noise_scale_factor = 1e-2
 
 tau_tr_std = [np.std(Y_tr[:, i]) for i in range(num_dof)]
-train_noise_std = np.array(tau_tr_std) * noise_scale_factor
+train_noise_std = np.array(tau_tr_std) * train_noise_scale_factor
 train_noise_mean = np.zeros_like(train_noise_std)
 
 print('Adding Gaussian Noise (mean: {0}, std: {1}) to training data'.format(train_noise_mean, train_noise_std))
@@ -95,12 +102,12 @@ print('Adding Gaussian Noise (mean: {0}, std: {1}) to training data'.format(trai
 Y_tr_noised = Utils.noising_signals(Y_tr, train_noise_std, train_noise_mean)
 
 tau_test_std = [np.std(Y_test[:, i]) for i in range(num_dof)]
-test_noise_std = np.array(tau_test_std) * noise_scale_factor
+test_noise_std = np.array(tau_test_std) * test_noise_scale_factor
 test_noise_mean = np.zeros_like(test_noise_std)
 
 print('Adding Gaussian Noise (mean: {0}, std: {1}) to test data'.format(test_noise_mean, test_noise_std))
 
-Y_test_noised = Utils.noising_signals(Y_test, train_noise_std, test_noise_mean)
+Y_test_noised = Utils.noising_signals(Y_test, test_noise_std, test_noise_std)
 
 for i in range(num_dof):
     plt.figure()
@@ -117,9 +124,7 @@ for i in range(num_dof):
     plt.legend()
 
 plt.show()
-Y_tr_noised
-Y_test_noised
 
-saving_file = saving_path + 'pendulum_2DOF_sim_train_test_targets_noised.pkl'
+saving_file = saving_path + '{0}_sim_train_test_targets_noised.pkl'.format(robot_name)
 
 pkl.dump([Y_tr_noised, Y_test_noised], open(saving_file, 'wb'))

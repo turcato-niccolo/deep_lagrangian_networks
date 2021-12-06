@@ -231,7 +231,8 @@ hyper = {'n_width': 64,
          'n_minibatch': 512,
          'learning_rate': 50.e-04,
          'weight_decay': 1.e-5,
-         'max_epoch': 150,
+         'max_epoch': 1000,
+         'model_noise': False,
          'save_file': model_saving_path + path_suff + 'delan_{}_model.torch'.format(robot_name)}
 
 

@@ -274,6 +274,12 @@ class DeepLagrangianNetwork(nn.Module):
         init_hidden(self.net_ld)
         torch.nn.init.constant_(self.net_ld.bias, self._b0_diag)
 
+        self.est_noise = False
+        if 'model_noise' in kwargs.keys() and kwargs['model_noise']:
+            self.net_noise_std = LagrangianLayer(self.n_width, self.n_dof, activation="Linear")
+            self.net_noise_mean = LagrangianLayer(self.n_width, self.n_dof, activation="Linear")
+            self.est_noise = True
+
     def forward(self, q, qd, qdd):
         out = self._dyn_model(q, qd, qdd)
         tau_pred = out[0]
@@ -329,7 +335,24 @@ class DeepLagrangianNetwork(nn.Module):
 
         # Compute the Torque using the inverse model:
         H_qdd = torch.matmul(H, qdd.view(-1, self.n_dof, 1)).view(-1, self.n_dof)
-        tau_pred = H_qdd + c + g
+
+        # Compute noise estimation
+        if self.est_noise:
+            n_std, _ = self.net_noise_std(y, der)
+            n_mean, _ = self.net_noise_mean(y, der)
+            if(torch.nan in n_std):
+                print('std has nan')
+            if (torch.nan in n_mean):
+                print('mean has nan')
+            noise = n_std * torch.normal(0, 1, n_std.size(), device=self.device) + n_mean
+
+            if torch.nan in noise:
+                print('here')
+
+            tau_pred = H_qdd + c + g + noise
+
+        else:
+            tau_pred = H_qdd + c + g
 
         # Compute kinetic energy T
         H_qd = torch.matmul(H, qd_3d).view(-1, self.n_dof)
