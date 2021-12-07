@@ -146,7 +146,7 @@ flg_load = False
 # flg_cuda = False
 flg_cuda = True  # Watch this
 
-downsampling = 10
+downsampling = 9
 num_threads = 4
 norm_coeff = 1
 
@@ -219,27 +219,27 @@ print("\n################################################")
 print("Training Deep Lagrangian Networks (DeLaN):")
 
 # Construct Hyperparameters:
-# hyper = {'n_width': 64,
-#          'n_depth': 2,
-#          'diagonal_epsilon': 0.01,
-#          'activation': 'SoftPlus',
-#          'b_init': 1.e-4,
-#          'b_diag_init': 0.001,
-#          'w_init': 'orthogonal',
-#          'gain_hidden': np.sqrt(2.),
-#          'gain_output': 0.1,
-#          'n_minibatch': 512,
-#          'learning_rate': 50.e-04,
-#          'weight_decay': 1.e-5,
-#          'max_epoch': 10000,
-#          'save_file': model_saving_path + path_suff + 'delan_panda3DOF_model.torch'}
-hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "ReLu", "b_init": 0.0001,
-         "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
-         "n_minibatch": 512, "learning_rate": 0.01, "weight_decay": 1e-05, "max_epoch": 150}
+hyper = {'n_width': 64,
+         'n_depth': 2,
+         'diagonal_epsilon': 0.01,
+         'activation': 'SoftPlus',
+         'b_init': 1.e-4,
+         'b_diag_init': 0.001,
+         'w_init': 'orthogonal',
+         'gain_hidden': np.sqrt(2.),
+         'gain_output': 0.1,
+         'n_minibatch': 512,
+         'learning_rate': 50.e-04,
+         'weight_decay': 1.e-5,
+         'max_epoch': 10000,
+         'save_file': model_saving_path + path_suff + 'delan_panda3DOF_model.torch'}
+# hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "ReLu", "b_init": 0.0001,
+#          "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
+#          "n_minibatch": 512, "learning_rate": 0.01, "weight_decay": 1e-05, "max_epoch": 150}
 
 
 # Splitting test-val dataset
-split = 10  # N_train/split samples to val and (Ntrain - N_train/split) to train
+split = 11  # N_train/split samples to val and (Ntrain - N_train/split) to train
 val_size = int(X_tr.shape[0] / split)
 X_val = X_tr[X_tr.shape[0] - val_size:, :]
 Y_val = Y_tr[Y_tr.shape[0] - val_size:, :]
@@ -314,8 +314,8 @@ with torch.no_grad():
     delan_tr_c = delan_model.inv_dyn(q, qd, zeros).cpu().numpy().squeeze() - delan_tr_g
     delan_tr_m = delan_model.inv_dyn(q, zeros, qdd).cpu().numpy().squeeze() - delan_tr_g
 
-tr_estimates_saving_path = 'data/' + robot_name + path_suff + 'DeLaN_train_estimates.pkl'
-test_estimates_saving_path = 'data/' + robot_name + path_suff + 'DeLaN_test_estimates.pkl'
+tr_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_train_estimates.pkl'
+test_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_test_estimates.pkl'
 
 pd_test_estimates = Utils.convert_predictions_to_dataset(
     np.hstack([delan_test_tau, delan_test_m, delan_test_c, delan_test_g]),

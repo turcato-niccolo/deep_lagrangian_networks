@@ -200,22 +200,22 @@ print("\n################################################")
 print("Training Deep Lagrangian Networks (DeLaN):")
 
 # Construct Hyperparameters:
-# hyper = {'n_width': 64,
-#          'n_depth': 2,
-#          'diagonal_epsilon': 0.01,
-#          'activation': 'SoftPlus',
-#          'b_init': 1.e-4,
-#          'b_diag_init': 0.001,
-#          'w_init': 'xavier_normal',
-#          'gain_hidden': np.sqrt(2.),
-#          'gain_output': 0.1,
-#          'learning_rate': 5.e-04,
-#          'weight_decay': 1.e-5,
-#          'max_epoch': 100}
+hyper = {'n_width': 64,
+         'n_depth': 2,
+         'diagonal_epsilon': 0.01,
+         'activation': 'SoftPlus',
+         'b_init': 1.e-4,
+         'b_diag_init': 0.001,
+         'w_init': 'xavier_normal',
+         'gain_hidden': np.sqrt(2.),
+         'gain_output': 0.1,
+         'learning_rate': 5.e-04,
+         'weight_decay': 1.e-5,
+         'max_epoch': 150}
 
-hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "ReLu", "b_init": 0.0001,
-         "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
-         "n_minibatch": 512, "learning_rate": 0.01, "weight_decay": 1e-05, "max_epoch": 150}
+# hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "ReLu", "b_init": 0.0001,
+#          "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
+#          "n_minibatch": 512, "learning_rate": 0.01, "weight_decay": 1e-05, "max_epoch": 150}
 
 ### DATA EFFICIENCY TEST
 
@@ -229,5 +229,5 @@ test_results = Utils.data_efficiency_test(hyper, X_tr, Y_tr, X_test, Y_test)
 print(test_results)
 
 
-efficiency_results = saving_path + path_suff + 'data_efficiency_results_{}.pkl'.format(robot_name)
+efficiency_results = saving_path + 'orig_model_' + path_suff + 'data_efficiency_results_{}.pkl'.format(robot_name)
 pkl.dump(test_results, open(efficiency_results, 'wb'))
