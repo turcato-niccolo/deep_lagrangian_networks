@@ -122,8 +122,8 @@ flg_save = True
 # flg_load = False
 flg_load = True
 
-flg_noise = True
-# flg_noise = False
+#flg_noise = True
+flg_noise = False
 
 
 flg_cuda = True
@@ -224,7 +224,7 @@ num_data_tr = X_tr.shape[0]
 print('TRAIN: {}'.format(num_data_tr))
 
 #CALL function
-test_results = Utils.data_efficiency_test(hyper, X_tr, Y_tr, X_test, Y_test)
+test_results = Utils.data_efficiency_test(hyper, X_tr, Y_tr, X_test, Y_test, k_repetition=10)
 
 print(test_results)
 
