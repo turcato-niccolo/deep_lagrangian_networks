@@ -146,7 +146,7 @@ flg_load = False
 # flg_cuda = False
 flg_cuda = True  # Watch this
 
-downsampling = 9
+downsampling = 10
 num_threads = 4
 norm_coeff = 1
 
@@ -239,7 +239,7 @@ hyper = {'n_width': 64,
 
 
 # Splitting test-val dataset
-split = 11  # N_train/split samples to val and (Ntrain - N_train/split) to train
+split = 10  # N_train/split samples to val and (Ntrain - N_train/split) to train
 val_size = int(X_tr.shape[0] / split)
 X_val = X_tr[X_tr.shape[0] - val_size:, :]
 Y_val = Y_tr[Y_tr.shape[0] - val_size:, :]
@@ -298,8 +298,8 @@ with torch.no_grad():
     delan_test_c = delan_model.inv_dyn(q, qd, zeros).cpu().numpy().squeeze() - delan_test_g
     delan_test_m = delan_model.inv_dyn(q, zeros, qdd).cpu().numpy().squeeze() - delan_test_g
 
-X_tr = np.vstack((X_tr, X_val))
-Y_tr = np.vstack((Y_tr, Y_val))
+#X_tr = np.vstack((X_tr, X_val))
+#Y_tr = np.vstack((Y_tr, Y_val))
 
 delan_tr_tau = delan_model.evaluate(X_tr)
 train_qp, train_qv, train_qa = Utils.unpack_dataset_joint_variables(X_tr, num_dof)
