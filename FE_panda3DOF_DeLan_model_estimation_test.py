@@ -132,16 +132,16 @@ locals().update(vars(parser.parse_known_args()[0]))
 
 # %%
 # Set flags -- for debug
-flg_train = True
-#flg_train = False
+#flg_train = True
+flg_train = False
 
 # flg_save = True
 
 flg_noise = True
 # flg_noise = False
 
-flg_load = False
-#flg_load = True
+#flg_load = False
+flg_load = True
 
 # flg_cuda = False
 flg_cuda = True  # Watch this
@@ -298,8 +298,8 @@ with torch.no_grad():
     delan_test_c = delan_model.inv_dyn(q, qd, zeros).cpu().numpy().squeeze() - delan_test_g
     delan_test_m = delan_model.inv_dyn(q, zeros, qdd).cpu().numpy().squeeze() - delan_test_g
 
-#X_tr = np.vstack((X_tr, X_val))
-#Y_tr = np.vstack((Y_tr, Y_val))
+X_tr = np.vstack((X_tr, X_val))
+Y_tr = np.vstack((Y_tr, Y_val))
 
 delan_tr_tau = delan_model.evaluate(X_tr)
 train_qp, train_qv, train_qa = Utils.unpack_dataset_joint_variables(X_tr, num_dof)
