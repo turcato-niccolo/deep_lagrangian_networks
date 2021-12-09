@@ -132,16 +132,16 @@ locals().update(vars(parser.parse_known_args()[0]))
 
 # %%
 # Set flags -- for debug
-#flg_train = True
-flg_train = False
+flg_train = True
+#flg_train = False
 
 # flg_save = True
 
-flg_noise = True
-# flg_noise = False
+#flg_noise = True
+flg_noise = False
 
-#flg_load = False
-flg_load = True
+flg_load = False
+#flg_load = True
 
 # flg_cuda = False
 flg_cuda = True  # Watch this
@@ -314,8 +314,10 @@ with torch.no_grad():
     delan_tr_c = delan_model.inv_dyn(q, qd, zeros).cpu().numpy().squeeze() - delan_tr_g
     delan_tr_m = delan_model.inv_dyn(q, zeros, qdd).cpu().numpy().squeeze() - delan_tr_g
 
-tr_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_train_estimates.pkl'
-test_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_test_estimates.pkl'
+#tr_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_train_estimates.pkl'
+tr_estimates_saving_path = 'data/' + robot_name + path_suff + 'DeLaN_train_estimates.pkl'
+test_estimates_saving_path = 'data/' + robot_name  + path_suff + 'DeLaN_test_estimates.pkl'
+#test_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_test_estimates.pkl'
 
 pd_test_estimates = Utils.convert_predictions_to_dataset(
     np.hstack([delan_test_tau, delan_test_m, delan_test_c, delan_test_g]),
