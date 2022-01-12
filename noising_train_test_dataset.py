@@ -89,9 +89,8 @@ X_test, Y_test, active_dims_list, data_frame_test = Project_FL_Utils.get_data_fr
                                                                                             output_feature,
                                                                                             num_dof)
 # 2DOF - trainSF = testSF = 5e-2
-# 3DOF - SF =
-train_noise_scale_factor = 1e-2
-test_noise_scale_factor = 1e-2
+# 3DOF - trainSF = testSF = 5e-2
+train_noise_scale_factor = test_noise_scale_factor = 5e-2
 
 tau_tr_std = [np.std(Y_tr[:, i]) for i in range(num_dof)]
 train_noise_std = np.array(tau_tr_std) * train_noise_scale_factor
@@ -105,9 +104,9 @@ tau_test_std = [np.std(Y_test[:, i]) for i in range(num_dof)]
 test_noise_std = np.array(tau_test_std) * test_noise_scale_factor
 test_noise_mean = np.zeros_like(test_noise_std)
 
-print('Adding Gaussian Noise (mean: {0}, std: {1}) to test data'.format(test_noise_mean, test_noise_std))
+print('Adding Gaussian Noise (mean: {0}, std: {1}) to training data'.format(train_noise_mean, train_noise_std))
 
-Y_test_noised = Utils.noising_signals(Y_test, test_noise_std, test_noise_std)
+Y_test_noised = Utils.noising_signals(Y_test, train_noise_std, train_noise_mean)
 
 for i in range(num_dof):
     plt.figure()
