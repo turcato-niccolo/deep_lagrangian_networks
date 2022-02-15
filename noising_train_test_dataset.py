@@ -41,11 +41,14 @@ parser.add_argument('-flg_save',
 locals().update(vars(parser.parse_known_args()[0]))
 
 print('Setting paths... ', end='')
-robot_name = 'FE_panda3DOF'
+#robot_name = 'FE_panda3DOF'
+robot_name = 'FE_panda'
 data_path = './robust_fl_with_gps/Simulated_robots/SympyBotics_sim/FE_panda/'
-test_file = 'FE_panda3DOF_sim_test.pkl'
+#test_file = 'FE_panda3DOF_sim_test.pkl'
+test_file = 'FE_panda_sim_test.pkl'
 saving_path = data_path
-training_file = 'FE_panda3DOF_sim_tr.pkl'
+#training_file = 'FE_panda3DOF_sim_tr.pkl'
+training_file = 'FE_panda_sim_tr.pkl'
 
 # Datasets loading paths
 tr_path = data_path + training_file
@@ -55,7 +58,7 @@ path_suff = ''
 # Set robot params
 print('Setting robot parameters... ', end='')
 
-num_dof = 3
+num_dof = 7
 joint_index_list = range(0, num_dof)
 robot_structure = [0] * num_dof  # 0 = revolute, 1 = prismatic
 joint_names = [str(joint_index) for joint_index in range(1, num_dof + 1)]
@@ -90,6 +93,7 @@ X_test, Y_test, active_dims_list, data_frame_test = Project_FL_Utils.get_data_fr
                                                                                             num_dof)
 # 2DOF - trainSF = testSF = 5e-2
 # 3DOF - trainSF = testSF = 5e-2
+# 7DOF (complete) - trainSF = testSF = 5e-2
 train_noise_scale_factor = test_noise_scale_factor = 5e-2
 
 tau_tr_std = [np.std(Y_tr[:, i]) for i in range(num_dof)]

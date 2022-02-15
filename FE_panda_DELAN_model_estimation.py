@@ -1,8 +1,7 @@
 """
-RBF+LIN estimator of the Franka Emika Panda robot simulated in Pybullet
+Script for training/testing of Deep Lagrangian Network of simulated data of a Panda robot.
 
-Author: Giulio Giacomuzzo (giulio.giacomuzzo@gmail.com)
-Edited by Niccolò Turcato (niccolo.turcato@studenti.unipd.it)
+Author: Niccolò Turcato (niccolo.turcato@studenti.unipd.it)
 
 """
 
@@ -131,37 +130,37 @@ parser.add_argument('-downsampling',
                     default=1,
                     help='Downsampling.')
 locals().update(vars(parser.parse_known_args()[0]))
-
 # %%
 # Set flags -- for debug
 flg_train = True
+#flg_train = False
 
 # flg_save = True
 
+flg_noise = True
+#flg_noise = False
+
 flg_load = False
-# flg_load = True
+#flg_load = True
 
-flg_cuda = False
-# flg_cuda = True
+# flg_cuda = False
+flg_cuda = True  # Watch this
 
-downsampling = 100
+downsampling = 10
 num_threads = 4
-N_epoch = 500
-batch_size = 512
+norm_coeff = 1
 
-# %%
-# Set the paths 
+# Set the paths
 print('Setting paths... ', end='')
 
 # Datasets loading paths
 tr_path = data_path + training_file
 test_path = data_path + test_file
 
-# %%
 # Set robot params
 print('Setting robot parameters... ', end='')
 
-num_dof = 7
+num_dof = 3
 joint_index_list = range(0, num_dof)
 robot_structure = [0] * num_dof  # 0 = revolute, 1 = prismatic
 joint_names = [str(joint_index) for joint_index in range(1, num_dof + 1)]
@@ -170,7 +169,6 @@ output_feature = 'tau'
 
 print('Done!')
 
-# %%
 # Load datasets
 print('Loading datasets... ', end='')
 
@@ -187,29 +185,29 @@ X_tr, Y_tr, active_dims_list, data_frame_tr = Project_FL_Utils.get_data_from_fea
                                                                                       input_features_joint_list,
                                                                                       output_feature,
                                                                                       num_dof)
+
 X_test, Y_test, active_dims_list, data_frame_test = Project_FL_Utils.get_data_from_features(test_path,
                                                                                             input_features,
                                                                                             input_features_joint_list,
                                                                                             output_feature,
                                                                                             num_dof)
+path_suff = ''
 
-num_data_test = X_test.shape[0]
-print('Done!')
+if flg_noise:
+    noised_targets_file = data_path + noised_targets_file
+    Y_tr_noised, Y_test_noised = pkl.load(open(noised_targets_file, 'rb'))
+    Y_tr = Y_tr_noised
+    Y_test = Y_test_noised
+    path_suff += 'noised_'
 
-# Read the dataset:
-n_dof = num_dof
-
-train_qp = X_tr[:, 0:7]  # joint positions
-train_qv = X_tr[:, 7:14]  # joint velocities
-train_qa = X_tr[:, 14:]  # joint accelerations
-
-train_tau = Y_tr
-
-test_qp = X_test[:, 0:7]  # joint positions
-test_qv = X_test[:, 7:14]  # joint velocities
-test_qa = X_test[:, 14:]  # joint accelerations
-
-test_tau = Y_test
+if downsampling > 1:
+    path_suff += 'downsampling' + str(downsampling) + '_'
+    print('## Downsampling signals... ', end='')
+    X_tr = X_tr[::downsampling]
+    Y_tr = Y_tr[::downsampling]
+    X_test = X_test[::downsampling]
+    Y_test = Y_test[::downsampling]
+    print('Done!')
 
 print("\n\n################################################")
 print("Characters:")
