@@ -130,6 +130,7 @@ flg_cuda = True
 # flg_cuda = True  # Watch this
 
 downsampling = 10
+num_data_tr = 4000
 num_threads = 4
 N_epoch = 500
 norm_coeff = 1
@@ -195,27 +196,34 @@ if downsampling > 1:
     Y_tr = Y_tr[::downsampling]
     print('Done!')
 
+if (num_data_tr != None):
+    if (num_data_tr < X_tr.shape[0]):
+        print('    Selecting the subset of training data to use... ', end='')
+        X_tr = X_tr[:num_data_tr]
+        Y_tr = Y_tr[:num_data_tr]
+        print('Done!')
+
 # Training Parameters:
 print("\n################################################")
 print("Training Deep Lagrangian Networks (DeLaN):")
 
-# Construct Hyperparameters:
-# hyper = {'n_width': 64,
-#          'n_depth': 2,
-#          'diagonal_epsilon': 0.01,
-#          'activation': 'SoftPlus',
-#          'b_init': 1.e-4,
-#          'b_diag_init': 0.001,
-#          'w_init': 'xavier_normal',
-#          'gain_hidden': np.sqrt(2.),
-#          'gain_output': 0.1,
-#          'learning_rate': 5.e-04,
-#          'weight_decay': 1.e-5,
-#          'max_epoch': 250}
+#Construct Hyperparameters:
+hyper = {'n_width': 64,
+         'n_depth': 2,
+         'diagonal_epsilon': 0.01,
+         'activation': 'SoftPlus',
+         'b_init': 1.e-4,
+         'b_diag_init': 0.001,
+         'w_init': 'xavier_normal',
+         'gain_hidden': np.sqrt(2.),
+         'gain_output': 0.1,
+         'learning_rate': 0.001,
+         'weight_decay': 1.e-5,
+         'max_epoch': 2500}
 
-hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "ReLu", "b_init": 0.0001,
-         "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
-         "n_minibatch": 512, "learning_rate": 0.01, "weight_decay": 1e-05, "max_epoch": 500}
+# hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "ReLu", "b_init": 0.0001,
+#          "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
+#          "n_minibatch": 512, "learning_rate": 0.01, "weight_decay": 1e-05, "max_epoch": 500}
 
 ### DATA EFFICIENCY TEST
 
@@ -223,13 +231,11 @@ hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "
 num_data_tr = X_tr.shape[0]
 print('TRAIN: {}'.format(num_data_tr))
 
+efficiency_results_filename = saving_path + 'orig_model_' + path_suff + 'data_efficiency_results_{}.pkl'.format(robot_name)
+#efficiency_results_filename = saving_path + path_suff + 'data_efficiency_results_{}.pkl'.format(robot_name)
+
 #CALL function
-test_results = Utils.data_efficiency_test(hyper, X_tr, Y_tr, X_test, Y_test, k_repetition=5)
+test_results = Utils.data_efficiency_test(hyper, X_tr, Y_tr, X_test, Y_test, efficiency_results_filename, k_repetition=5)
 
 print(test_results)
 
-
-#efficiency_results = saving_path + 'orig_model_' + path_suff + 'data_efficiency_results_{}.pkl'.format(robot_name)
-efficiency_results = saving_path + path_suff + 'data_efficiency_results_{}.pkl'.format(robot_name)
-
-pkl.dump(test_results, open(efficiency_results, 'wb'))

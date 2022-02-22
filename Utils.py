@@ -4,6 +4,7 @@ Utilities Source File
 Author: Niccolò Turcato (niccolo.turcato@studenti.unipd.it)
 """
 import math
+import os
 import time
 
 import numpy as np
@@ -11,6 +12,7 @@ import pandas as pd
 import torch
 from sklearn.model_selection import KFold
 from tqdm import tqdm
+import pickle as pkl
 
 import pytorchtools
 from deep_lagrangian_networks.DeLaN_model import DeepLagrangianNetwork
@@ -124,7 +126,8 @@ def k_fold_cross_val_model_selection(num_dof, optimizer_lambda, dataset, targets
     return np.argmax(np.array(results_nmse_models))
 
 
-def data_efficiency_test(hyperparams, X_tr, Y_tr, X_test, Y_test, step_portion=0.05, k_repetition=5, flg_cuda=True):
+def data_efficiency_test(hyperparams, X_tr, Y_tr, X_test, Y_test, efficiency_results_filename, step_portion=0.05,
+                         k_repetition=5, flg_cuda=True):
     """
     Function that performs data efficiency test, given a step portion, it performs training ok k models on portions of
     increasing size from the minimum portion (=step portion) size to the full training set size.
@@ -157,15 +160,20 @@ def data_efficiency_test(hyperparams, X_tr, Y_tr, X_test, Y_test, step_portion=0
 
     training_steps = [int(num_data_tr * (i + 1) * step_portion) for i in range(n_steps)]
 
-    test_results = dict()
-    for k in range(k_repetition):
-        test_results[k] = dict()
-        test_results[k]['G_MSE'] = dict()
-        test_results[k]['n_MSE'] = dict()
+    if os.path.exists(efficiency_results_filename):
+        test_results = pkl.load(open(efficiency_results_filename, 'rb'))
+    else:
+        test_results = dict()
+        for k in range(k_repetition):
+            test_results[k] = dict()
+            test_results[k]['G_MSE'] = dict()
+            test_results[k]['n_MSE'] = dict()
+            test_results[k]['train_loss'] = dict()
 
-    test_results['MEAN'] = dict()
-    test_results['MEAN']['G_MSE'] = dict()
-    test_results['MEAN']['n_MSE'] = dict()
+        test_results['MEAN'] = dict()
+        test_results['MEAN']['G_MSE'] = dict()
+        test_results['MEAN']['n_MSE'] = dict()
+
 
     for step_num_data_tr in training_steps:
         print("Training with {} samples".format(step_num_data_tr))
@@ -192,7 +200,7 @@ def data_efficiency_test(hyperparams, X_tr, Y_tr, X_test, Y_test, step_portion=0
                                          amsgrad=True)
             flg_save = False
 
-            delan_model.train_model(X, Y, optimizer, save_model=flg_save)
+            train_losses = delan_model.train_model(X, Y, optimizer, save_model=flg_save)
 
             Y_test_hat = delan_model.evaluate(X_test)
 
@@ -207,6 +215,9 @@ def data_efficiency_test(hyperparams, X_tr, Y_tr, X_test, Y_test, step_portion=0
 
             test_results[k]['G_MSE'][step_num_data_tr] = g_mse_curr_tr
             test_results[k]['n_MSE'][step_num_data_tr] = n_mse_curr_tr
+            print('Global MSE: {}'.format(g_mse_curr_tr))
+            print('nomalized MSE: {}'.format(g_mse_curr_tr))
+            test_results[k]['train_loss'][step_num_data_tr] = train_losses
 
         g_mse /= k_repetition
         n_mse /= k_repetition
@@ -216,6 +227,8 @@ def data_efficiency_test(hyperparams, X_tr, Y_tr, X_test, Y_test, step_portion=0
 
         test_results['MEAN']['G_MSE'][step_num_data_tr] = g_mse
         test_results['MEAN']['n_MSE'][step_num_data_tr] = n_mse
+
+        pkl.dump(test_results, open(efficiency_results_filename, 'wb'))
 
     return test_results
 

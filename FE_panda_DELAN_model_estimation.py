@@ -229,7 +229,7 @@ hyper = {'n_width': 64,
          'learning_rate': 50.e-04,
          'weight_decay': 1.e-5,
          'max_epoch': 30000,
-         'save_file': model_saving_path + path_suff + 'delan_panda3DOF_model.torch'}
+         'save_file': model_saving_path + path_suff + 'delan_panda_model.torch'}
 
 
 # Splitting test-val dataset
@@ -244,7 +244,7 @@ patience = int(hyper['max_epoch'] / 300)
 
 early_stopping = EarlyStopping(patience=patience, verbose=False)
 
-hyper['save_file'] = model_saving_path + path_suff + 'delan_panda3DOF_model.torch'
+hyper['save_file'] = model_saving_path + path_suff + 'delan_panda_model.torch'
 
 if flg_train:
     delan_model = DeepLagrangianNetwork(num_dof, **hyper)
