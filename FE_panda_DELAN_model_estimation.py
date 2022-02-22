@@ -134,8 +134,8 @@ flg_train = True
 
 flg_save = True
 
-flg_noise = True
-#flg_noise = False
+#flg_noise = True
+flg_noise = False
 
 flg_load = False
 #flg_load = True
@@ -144,6 +144,7 @@ flg_load = False
 flg_cuda = True  # Watch this
 
 downsampling = 10
+num_data_tr = 4000
 num_threads = 4
 norm_coeff = 1
 
@@ -206,6 +207,13 @@ if downsampling > 1:
     Y_test = Y_test[::downsampling]
     print('Done!')
 
+if (num_data_tr != None):
+    if (num_data_tr < X_tr.shape[0]):
+        print('    Selecting the subset of training data to use... ', end='')
+        X_tr = X_tr[:num_data_tr]
+        Y_tr = Y_tr[:num_data_tr]
+        print('Done!')
+
 print("\n\n################################################")
 print("# Training Samples = {0:05d}".format(int(X_tr.shape[0])))
 print("# Test Samples = {0:05d}".format(int(X_test.shape[0])))
@@ -216,8 +224,23 @@ print("\n################################################")
 print("Training Deep Lagrangian Networks (DeLaN):")
 
 # Construct Hyperparameters:
-hyper = {'n_width': 64,
-         'n_depth': 2,
+# hyper = {'n_width': 64,
+#          'n_depth': 2,
+#          'diagonal_epsilon': 0.01,
+#          'activation': 'SoftPlus',
+#          'b_init': 1.e-4,
+#          'b_diag_init': 0.001,
+#          'w_init': 'orthogonal',
+#          'gain_hidden': np.sqrt(2.),
+#          'gain_output': 0.1,
+#          'n_minibatch': 512,
+#          'learning_rate': 0.001,
+#          'weight_decay': 1.e-5,
+#          'max_epoch': 30000,
+#          'save_file': model_saving_path + path_suff + 'delan_panda.torch'}
+
+hyper = {'n_width': 128,
+         'n_depth': 4,
          'diagonal_epsilon': 0.01,
          'activation': 'SoftPlus',
          'b_init': 1.e-4,
@@ -226,11 +249,13 @@ hyper = {'n_width': 64,
          'gain_hidden': np.sqrt(2.),
          'gain_output': 0.1,
          'n_minibatch': 512,
-         'learning_rate': 50.e-04,
+         'learning_rate': 0.001,
          'weight_decay': 1.e-5,
-         'max_epoch': 30000,
-         'save_file': model_saving_path + path_suff + 'delan_panda_model.torch'}
+         'max_epoch': 40000,
+         'save_file': model_saving_path + path_suff + 'delan_panda.torch'}
 
+
+#hyper['save_file'] = model_saving_path + path_suff + 'delan_panda_orig_model.torch'
 
 # Splitting test-val dataset
 split = 10  # N_train/split samples to val and (Ntrain - N_train/split) to train
@@ -240,11 +265,10 @@ Y_val = Y_tr[Y_tr.shape[0] - val_size:, :]
 X_tr = X_tr[:X_tr.shape[0] - val_size, :]
 Y_tr = Y_tr[:Y_tr.shape[0] - val_size, :]
 
-patience = int(hyper['max_epoch'] / 300)
+patience = int(hyper['max_epoch'] / 30)
 
 early_stopping = EarlyStopping(patience=patience, verbose=False)
 
-hyper['save_file'] = model_saving_path + path_suff + 'delan_panda_model.torch'
 
 if flg_train:
     delan_model = DeepLagrangianNetwork(num_dof, **hyper)
