@@ -176,7 +176,7 @@ def data_efficiency_test(hyperparams, X_tr, Y_tr, X_test, Y_test, efficiency_res
 
 
     for step_num_data_tr in training_steps:
-        if len(test_results['MEAN']['G_MSE'].keys()) != 0 and step_num_data_tr <= min(test_results['MEAN']['G_MSE'].keys()):
+        if len(test_results['MEAN']['G_MSE'].keys()) != 0 and step_num_data_tr <= max(test_results['MEAN']['G_MSE'].keys()):
             continue
         print("Training with {} samples".format(step_num_data_tr))
         num_iterations_per_epoch = step_num_data_tr / hyperparams['n_minibatch']

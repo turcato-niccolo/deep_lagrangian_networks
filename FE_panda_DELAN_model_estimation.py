@@ -134,8 +134,8 @@ flg_train = True
 
 flg_save = True
 
-#flg_noise = True
-flg_noise = False
+flg_noise = True
+#flg_noise = False
 
 flg_load = False
 #flg_load = True
