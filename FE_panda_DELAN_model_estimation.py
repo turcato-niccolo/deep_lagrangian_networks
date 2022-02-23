@@ -134,8 +134,8 @@ flg_train = True
 
 flg_save = True
 
-flg_noise = True
-#flg_noise = False
+#flg_noise = True
+flg_noise = False
 
 flg_load = False
 #flg_load = True
@@ -236,11 +236,11 @@ print("Training Deep Lagrangian Networks (DeLaN):")
 #          'n_minibatch': 512,
 #          'learning_rate': 0.001,
 #          'weight_decay': 1.e-5,
-#          'max_epoch': 30000,
-#          'save_file': model_saving_path + path_suff + 'delan_panda.torch'}
+#          'max_epoch': 40000,
+#          'save_file': model_saving_path + path_suff + 'delan_orig_panda.torch'}
 
 hyper = {'n_width': 128,
-         'n_depth': 4,
+         'n_depth': 5,
          'diagonal_epsilon': 0.01,
          'activation': 'SoftPlus',
          'b_init': 1.e-4,
@@ -252,10 +252,24 @@ hyper = {'n_width': 128,
          'learning_rate': 0.001,
          'weight_decay': 1.e-5,
          'max_epoch': 40000,
-         'save_file': model_saving_path + path_suff + 'delan_panda.torch'}
+         'save_file': model_saving_path + path_suff + 'new_big_delan_panda.torch'}
+
+# hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "ReLu", "b_init": 0.0001,
+#          "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
+#          "n_minibatch": 512, "learning_rate": 0.0005, "weight_decay": 1e-05, "max_epoch": 40000,
+#          'save_file': model_saving_path + path_suff + 'delan_panda3DOF_new_model.torch'}
 
 
-#hyper['save_file'] = model_saving_path + path_suff + 'delan_panda_orig_model.torch'
+#tr_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_train_estimates.pkl'
+#test_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_test_estimates.pkl'
+
+# tr_estimates_saving_path = 'data/' + robot_name + path_suff + 'DeLaN_new_model_train_estimates.pkl'
+# test_estimates_saving_path = 'data/' + robot_name  + path_suff + 'DeLaN_new_model_test_estimates.pkl'
+
+tr_estimates_saving_path = 'data/' + robot_name + path_suff + 'DeLaN_new_big_model_train_estimates.pkl'
+test_estimates_saving_path = 'data/' + robot_name  + path_suff + 'DeLaN_new_big_model_test_estimates.pkl'
+
+
 
 # Splitting test-val dataset
 split = 10  # N_train/split samples to val and (Ntrain - N_train/split) to train
@@ -265,7 +279,7 @@ Y_val = Y_tr[Y_tr.shape[0] - val_size:, :]
 X_tr = X_tr[:X_tr.shape[0] - val_size, :]
 Y_tr = Y_tr[:Y_tr.shape[0] - val_size, :]
 
-patience = int(hyper['max_epoch'] / 30)
+patience = int(hyper['max_epoch'] / 40)
 
 early_stopping = EarlyStopping(patience=patience, verbose=False)
 
@@ -332,10 +346,6 @@ with torch.no_grad():
     delan_tr_c = delan_model.inv_dyn(q, qd, zeros).cpu().numpy().squeeze() - delan_tr_g
     delan_tr_m = delan_model.inv_dyn(q, zeros, qdd).cpu().numpy().squeeze() - delan_tr_g
 
-#tr_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_train_estimates.pkl'
-tr_estimates_saving_path = 'data/' + robot_name + path_suff + 'DeLaN_train_estimates.pkl'
-test_estimates_saving_path = 'data/' + robot_name  + path_suff + 'DeLaN_test_estimates.pkl'
-#test_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_test_estimates.pkl'
 
 pd_test_estimates = Utils.convert_predictions_to_dataset(
     np.hstack([delan_test_tau, delan_test_m, delan_test_c, delan_test_g]),

@@ -319,7 +319,6 @@ with torch.no_grad():
     delan_tr_m = delan_model.inv_dyn(q, zeros, qdd).cpu().numpy().squeeze() - delan_tr_g
 
 
-
 pd_test_estimates = Utils.convert_predictions_to_dataset(
     np.hstack([delan_test_tau, delan_test_m, delan_test_c, delan_test_g]),
     ['tau_est', 'm_est', 'c_est', 'g_est'], range(num_dof))
