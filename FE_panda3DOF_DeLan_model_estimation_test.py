@@ -255,7 +255,6 @@ Y_tr = Y_tr[:Y_tr.shape[0] - val_size, :]
 patience = int(hyper['max_epoch'] / 40)
 early_stopping = EarlyStopping(patience=patience, verbose=False)
 
-hyper['save_file'] = model_saving_path + path_suff + 'delan_panda3DOF_model.torch'
 
 if flg_train:
     delan_model = DeepLagrangianNetwork(num_dof, **hyper)
