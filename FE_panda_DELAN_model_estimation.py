@@ -134,8 +134,8 @@ flg_train = True
 
 flg_save = True
 
-#flg_noise = True
-flg_noise = False
+flg_noise = True
+#flg_noise = False-
 
 flg_load = False
 #flg_load = True
@@ -251,7 +251,7 @@ hyper = {'n_width': 128,
          'n_minibatch': 512,
          'learning_rate': 0.001,
          'weight_decay': 1.e-5,
-         'max_epoch': 40000,
+         'max_epoch': 80000,
          'save_file': model_saving_path + path_suff + 'new_big_delan_panda.torch'}
 
 # hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "ReLu", "b_init": 0.0001,
