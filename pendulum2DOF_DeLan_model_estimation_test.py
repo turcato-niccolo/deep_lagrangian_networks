@@ -134,7 +134,7 @@ locals().update(vars(parser.parse_known_args()[0]))
 flg_train = True
 #flg_train = False
 
-# flg_save = True
+flg_save = True
 
 flg_load = False
 #flg_load = True
@@ -229,9 +229,9 @@ hyper = {'n_width': 64,
          'gain_hidden': np.sqrt(2.),
          'gain_output': 0.1,
          'n_minibatch': 512,
-         'learning_rate': 50.e-04,
+         'learning_rate': 0.001,
          'weight_decay': 1.e-5,
-         'max_epoch': 1000,
+         'max_epoch': 10000,
          'model_noise': False,
          'save_file': model_saving_path + path_suff + 'delan_{}_model.torch'.format(robot_name)}
 
