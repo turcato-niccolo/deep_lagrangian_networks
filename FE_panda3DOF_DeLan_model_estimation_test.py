@@ -54,7 +54,7 @@ parser.add_argument('-robot_name',
                     help='Name of the robot.')
 parser.add_argument('-data_path',
                     type=str,
-                    default='./robust_fl_with_gps/Simulated_robots/SympyBotics_sim/FE_panda/',
+                    default='./robust_fl_with_gps/Simulated_robots/Pybullet_sim/FE_panda/data/',
                     help='Path to the folder containing training and test dasets.')
 parser.add_argument('-saving_path',
                     type=str,
@@ -66,11 +66,11 @@ parser.add_argument('-model_saving_path',
                     help='Path to the destination folder for the generated files.')
 parser.add_argument('-training_file',
                     type=str,
-                    default='FE_panda3DOF_sim_tr.pkl',
+                    default='FE_panda3DOF_pybul_fwgn_tr.pkl',
                     help='Name of the file containing the train dataset.')
 parser.add_argument('-test_file',
                     type=str,
-                    default='FE_panda3DOF_sim_test.pkl',
+                    default='FE_panda3DOF_pybul_sum_of_sin_test.pkl',
                     help='Name of the file containing the test dataset.')
 parser.add_argument('-noised_targets_file',
                     type=str,

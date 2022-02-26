@@ -70,11 +70,11 @@ parser.add_argument('-model_saving_path',
                     help='Path to the destination folder for the generated files.')
 parser.add_argument('-training_file',
                     type=str,
-                    default='FE_panda_pybul_fwgn_tr.pkl',
+                    default='FE_panda3DOF_pybul_fwgn_tr.pkl',
                     help='Name of the file containing the train dataset.')
 parser.add_argument('-test_file',
                     type=str,
-                    default='FE_panda_pybul_sum_of_sin_test.pkl',
+                    default='FE_panda3DOF_pybul_sum_of_sin_test.pkl',
                     help='Name of the file containing the test dataset.')
 parser.add_argument('-flg_load',
                     type=bool,
