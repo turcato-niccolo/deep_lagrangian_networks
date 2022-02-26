@@ -137,8 +137,8 @@ flg_train = True
 
 # flg_save = True
 
-#flg_noise = True
-flg_noise = False
+flg_noise = True
+#flg_noise = False
 
 flg_load = False
 #flg_load = True
@@ -231,13 +231,15 @@ hyper = {'n_width': 64,
          'n_minibatch': 512,
          'learning_rate': 0.0001,
          'weight_decay': 1.e-5,
-         'max_epoch': 10000,
+         'max_epoch': 20000,
          'save_file': model_saving_path + path_suff + 'delan_panda3DOF_orig_model.torch'}
 
-# hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "ReLu", "b_init": 0.0001,
-#          "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
-#          "n_minibatch": 512, "learning_rate": 0.01, "weight_decay": 1e-05, "max_epoch": 10000,
-#          'save_file': model_saving_path + path_suff + 'delan_panda3DOF_new_model.torch'}
+
+# hyper ={"n_width": 64, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "SoftPlus", "b_init": 0.0001,
+#         "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
+#         "n_minibatch": 512, "learning_rate": 0.0001, "weight_decay": 1e-05, "max_epoch": 20000,
+#         "activations": "SoftPlus", "w_inits": "sparse",
+#         'save_file': model_saving_path + path_suff + 'delan_panda3DOF_new_model.torch'}
 
 tr_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_train_estimates.pkl'
 # tr_estimates_saving_path = 'data/' + robot_name + path_suff + 'DeLaN_new_model_train_estimates.pkl'
@@ -332,12 +334,12 @@ Y_test_noiseless_pd = Utils.convert_predictions_to_dataset(Y_test, ['tau'], rang
 Project_FL_Utils.get_stat_estimate(Y_tr_noiseless_pd, [pd_tr_estimates], joint_index_list, stat_name='nMSE',
                                    output_feature='tau')
 Project_FL_Utils.get_stat_estimate(Y_test_noiseless_pd, [pd_test_estimates], joint_index_list, stat_name='nMSE',
-                                   output_feature=output_feature)
+                                   output_feature='tau')
 
 
 if flg_save:
     print("Saving estimates...")
-    pkl.dump(pd_tr_estimates, open(tr_estimates_saving_path, 'wb'))
+    pkl.dump([pd_tr_estimates, train_loss, val_loss], open(tr_estimates_saving_path, 'wb'))
     pkl.dump(pd_test_estimates, open(test_estimates_saving_path, 'wb'))
     print("Done!")
 

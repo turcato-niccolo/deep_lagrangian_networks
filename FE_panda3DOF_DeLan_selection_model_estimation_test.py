@@ -58,7 +58,7 @@ parser.add_argument('-robot_name',
                     help='Name of the robot.')
 parser.add_argument('-data_path',
                     type=str,
-                    default='./robust_fl_with_gps/Simulated_robots/SympyBotics_sim/FE_panda/',
+                    default='./robust_fl_with_gps/Simulated_robots/Pybullet_sim/FE_panda/data/',
                     help='Path to the folder containing training and test dasets.')
 parser.add_argument('-saving_path',
                     type=str,
@@ -70,11 +70,11 @@ parser.add_argument('-model_saving_path',
                     help='Path to the destination folder for the generated files.')
 parser.add_argument('-training_file',
                     type=str,
-                    default='FE_panda3DOF_sim_tr.pkl',
+                    default='FE_panda_pybul_fwgn_tr.pkl',
                     help='Name of the file containing the train dataset.')
 parser.add_argument('-test_file',
                     type=str,
-                    default='FE_panda3DOF_sim_test.pkl',
+                    default='FE_panda_pybul_sum_of_sin_test.pkl',
                     help='Name of the file containing the test dataset.')
 parser.add_argument('-flg_load',
                     type=bool,
@@ -213,16 +213,16 @@ hyper_base = {'n_width': 64,
          'gain_hidden': np.sqrt(2.),
          'gain_output': 0.1,
          'n_minibatch': 512,
-         'learning_rate': 10.e-03,
+         'learning_rate': 0.0001,
          'weight_decay': 1.e-5,
-         'max_epoch': 10000}
+         'max_epoch': 1000}
 
 # Define list of hyperparameters
 hyper_list = []
 parameters = [
     [64, 128], # n_width
-    [2, 3, 4], # n_depth
-    ['ReLu', 'SoftPlus', 'Cos'], # activations
+    [2, 4, 6], # n_depth
+    ['ReLu', 'SoftPlus'], # activations
     #[1e-3, 5e-3, 1e-2], # b_diag_inits
     ['xavier_normal', 'orthogonal', 'sparse'], # w_inits
     #[1e-4, 1e-3, 5e-3, 1e-2, 1e-1] # learning_rates
@@ -259,7 +259,7 @@ early_stopping = True
 
 # Model selection with all training data
 idx_best_hyper = Utils.k_fold_cross_val_model_selection(num_dof, adam_lambda, X, Y, hyper_list, flg_cuda=flg_cuda,
-                                                        k_folds=2, early_stopping=early_stopping,
+                                                        k_folds=5, early_stopping=early_stopping,
                                                         X_val=X_val, Y_val=Y_val)
 
 best_hyper = hyper_list[idx_best_hyper].copy()
