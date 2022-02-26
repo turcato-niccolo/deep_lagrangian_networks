@@ -51,7 +51,7 @@ parser.add_argument('-robot_name',
                     help='Name of the robot.')
 parser.add_argument('-data_path',
                     type=str,
-                    default='./robust_fl_with_gps/Simulated_robots/SympyBotics_sim/FE_panda/',
+                    default='./robust_fl_with_gps/Simulated_robots/Pybullet_sim/FE_panda/data/',
                     help='Path to the folder containing training and test dasets.')
 parser.add_argument('-saving_path',
                     type=str,
@@ -63,16 +63,12 @@ parser.add_argument('-model_saving_path',
                     help='Path to the destination folder for the generated files.')
 parser.add_argument('-training_file',
                     type=str,
-                    default='FE_panda_sim_tr.pkl',
+                    default='FE_panda_pybul_fwgn_tr.pkl',
                     help='Name of the file containing the train dataset.')
 parser.add_argument('-test_file',
                     type=str,
-                    default='FE_panda_sim_test.pkl',
+                    default='FE_panda_pybul_sum_of_sin_test.pkl',
                     help='Name of the file containing the test dataset.')
-parser.add_argument('-noised_targets_file',
-                    type=str,
-                    default='FE_panda_sim_train_test_targets_noised.pkl',
-                    help='Name of the file containing the noised targets.')
 parser.add_argument('-flg_load',
                     type=bool,
                     default=False,
@@ -135,7 +131,7 @@ flg_train = True
 flg_save = True
 
 flg_noise = True
-#flg_noise = False-
+#flg_noise = False
 
 flg_load = False
 #flg_load = True
@@ -178,25 +174,23 @@ pos_indices = range(0, num_dof)
 acc_indices = range(2 * num_dof, 3 * num_dof)
 input_features_joint_list = [input_features] * num_dof
 
-X_tr, Y_tr, active_dims_list, data_frame_tr = Project_FL_Utils.get_data_from_features(tr_path,
-                                                                                      input_features,
-                                                                                      input_features_joint_list,
-                                                                                      output_feature,
-                                                                                      num_dof)
+path_suff = ''
 
 X_test, Y_test, active_dims_list, data_frame_test = Project_FL_Utils.get_data_from_features(test_path,
                                                                                             input_features,
                                                                                             input_features_joint_list,
                                                                                             output_feature,
                                                                                             num_dof)
-path_suff = ''
 
 if flg_noise:
-    noised_targets_file = data_path + noised_targets_file
-    Y_tr_noised, Y_test_noised = pkl.load(open(noised_targets_file, 'rb'))
-    Y_tr = Y_tr_noised
-    Y_test = Y_test_noised
+    output_feature = 'tau_noised'
     path_suff += 'noised_'
+
+X_tr, Y_tr, active_dims_list, data_frame_tr = Project_FL_Utils.get_data_from_features(tr_path,
+                                                                                      input_features,
+                                                                                      input_features_joint_list,
+                                                                                      output_feature,
+                                                                                      num_dof)
 
 if downsampling > 1:
     path_suff += 'downsampling' + str(downsampling) + '_'
@@ -260,8 +254,8 @@ hyper = {'n_width': 128,
 #          'save_file': model_saving_path + path_suff + 'delan_panda3DOF_new_model.torch'}
 
 
-#tr_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_train_estimates.pkl'
-#test_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_test_estimates.pkl'
+# tr_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_train_estimates.pkl'
+# test_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_test_estimates.pkl'
 
 # tr_estimates_saving_path = 'data/' + robot_name + path_suff + 'DeLaN_new_model_train_estimates.pkl'
 # test_estimates_saving_path = 'data/' + robot_name  + path_suff + 'DeLaN_new_model_test_estimates.pkl'
@@ -280,7 +274,6 @@ X_tr = X_tr[:X_tr.shape[0] - val_size, :]
 Y_tr = Y_tr[:Y_tr.shape[0] - val_size, :]
 
 patience = int(hyper['max_epoch'] / 40)
-
 early_stopping = EarlyStopping(patience=patience, verbose=False)
 
 
@@ -360,12 +353,12 @@ Y_test_noiseless_pd = Utils.convert_predictions_to_dataset(Y_test, ['tau'], rang
 Project_FL_Utils.get_stat_estimate(Y_tr_noiseless_pd, [pd_tr_estimates], joint_index_list, stat_name='nMSE',
                                    output_feature='tau')
 Project_FL_Utils.get_stat_estimate(Y_test_noiseless_pd, [pd_test_estimates], joint_index_list, stat_name='nMSE',
-                                   output_feature=output_feature)
+                                   output_feature='tau')
 
 
 if flg_save:
     print("Saving estimates...")
-    pkl.dump(pd_tr_estimates, open(tr_estimates_saving_path, 'wb'))
+    pkl.dump([pd_tr_estimates, train_loss, val_loss], open(tr_estimates_saving_path, 'wb'))
     pkl.dump(pd_test_estimates, open(test_estimates_saving_path, 'wb'))
     print("Done!")
 
