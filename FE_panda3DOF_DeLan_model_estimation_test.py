@@ -132,16 +132,17 @@ locals().update(vars(parser.parse_known_args()[0]))
 
 # %%
 # Set flags -- for debug
-flg_train = True
-#flg_train = False
+#flg_train = True
+flg_train = False
 
-# flg_save = True
+flg_save = True
+#flg_save = False
 
 flg_noise = True
 #flg_noise = False
 
-flg_load = False
-#flg_load = True
+#flg_load = False
+flg_load = True
 
 # flg_cuda = False
 flg_cuda = True  # Watch this
@@ -180,25 +181,22 @@ pos_indices = range(0, num_dof)
 acc_indices = range(2 * num_dof, 3 * num_dof)
 input_features_joint_list = [input_features] * num_dof
 
-X_tr, Y_tr, active_dims_list, data_frame_tr = Project_FL_Utils.get_data_from_features(tr_path,
-                                                                                      input_features,
-                                                                                      input_features_joint_list,
-                                                                                      output_feature,
-                                                                                      num_dof)
-
+path_suff=''
 X_test, Y_test, active_dims_list, data_frame_test = Project_FL_Utils.get_data_from_features(test_path,
                                                                                             input_features,
                                                                                             input_features_joint_list,
                                                                                             output_feature,
                                                                                             num_dof)
-path_suff = ''
 
 if flg_noise:
-    noised_targets_file = data_path + noised_targets_file
-    Y_tr_noised, Y_test_noised = pkl.load(open(noised_targets_file, 'rb'))
-    Y_tr = Y_tr_noised
-    Y_test = Y_test_noised
+    output_feature = 'tau_noised'
     path_suff += 'noised_'
+
+X_tr, Y_tr, active_dims_list, data_frame_tr = Project_FL_Utils.get_data_from_features(tr_path,
+                                                                                      input_features,
+                                                                                      input_features_joint_list,
+                                                                                      output_feature,
+                                                                                      num_dof)
 
 if downsampling > 1:
     path_suff += 'downsampling' + str(downsampling) + '_'
@@ -335,11 +333,21 @@ Project_FL_Utils.get_stat_estimate(Y_tr_noiseless_pd, [pd_tr_estimates], joint_i
                                    output_feature='tau')
 Project_FL_Utils.get_stat_estimate(Y_test_noiseless_pd, [pd_test_estimates], joint_index_list, stat_name='nMSE',
                                    output_feature='tau')
-
+# print the estimates
+Project_FL_Utils.print_estimate(Y_tr_noiseless_pd, [pd_tr_estimates], joint_index_list, flg_print_var=[False],
+                             output_feature='tau', data_noiseless=Y_tr_noiseless_pd,
+                             noiseless_output_feature='tau', label_prefix='tr_', color=['b'])
+# plt.show()
+Project_FL_Utils.print_estimate(Y_test_noiseless_pd, [pd_test_estimates], joint_index_list, flg_print_var=[False],
+                             output_feature='tau', label_prefix='test_', color=['b'])
+plt.show()
 
 if flg_save:
     print("Saving estimates...")
-    pkl.dump([pd_tr_estimates, train_loss, val_loss], open(tr_estimates_saving_path, 'wb'))
+    if flg_train:
+        pkl.dump([pd_tr_estimates, train_loss, val_loss], open(tr_estimates_saving_path, 'wb'))
+    else:
+        pkl.dump(pd_tr_estimates, open(tr_estimates_saving_path, 'wb'))
     pkl.dump(pd_test_estimates, open(test_estimates_saving_path, 'wb'))
     print("Done!")
 
