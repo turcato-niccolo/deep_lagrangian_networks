@@ -130,8 +130,8 @@ flg_train = True
 
 flg_save = True
 
-flg_noise = True
-#flg_noise = False
+#flg_noise = True
+flg_noise = False
 
 flg_load = False
 #flg_load = True
@@ -218,23 +218,8 @@ print("\n################################################")
 print("Training Deep Lagrangian Networks (DeLaN):")
 
 # Construct Hyperparameters:
-# hyper = {'n_width': 64,
-#          'n_depth': 2,
-#          'diagonal_epsilon': 0.01,
-#          'activation': 'SoftPlus',
-#          'b_init': 1.e-4,
-#          'b_diag_init': 0.001,
-#          'w_init': 'orthogonal',
-#          'gain_hidden': np.sqrt(2.),
-#          'gain_output': 0.1,
-#          'n_minibatch': 512,
-#          'learning_rate': 0.001,
-#          'weight_decay': 1.e-5,
-#          'max_epoch': 40000,
-#          'save_file': model_saving_path + path_suff + 'delan_orig_panda.torch'}
-
-hyper = {'n_width': 128,
-         'n_depth': 5,
+hyper = {'n_width': 64,
+         'n_depth': 2,
          'diagonal_epsilon': 0.01,
          'activation': 'SoftPlus',
          'b_init': 1.e-4,
@@ -245,8 +230,23 @@ hyper = {'n_width': 128,
          'n_minibatch': 512,
          'learning_rate': 0.001,
          'weight_decay': 1.e-5,
-         'max_epoch': 80000,
-         'save_file': model_saving_path + path_suff + 'new_big_delan_panda.torch'}
+         'max_epoch': 40000,
+         'save_file': model_saving_path + path_suff + 'delan_orig_panda.torch'}
+
+# hyper = {'n_width': 128,
+#          'n_depth': 5,
+#          'diagonal_epsilon': 0.01,
+#          'activation': 'SoftPlus',
+#          'b_init': 1.e-4,
+#          'b_diag_init': 0.001,
+#          'w_init': 'orthogonal',
+#          'gain_hidden': np.sqrt(2.),
+#          'gain_output': 0.1,
+#          'n_minibatch': 512,
+#          'learning_rate': 0.001,
+#          'weight_decay': 1.e-5,
+#          'max_epoch': 80000,
+#          'save_file': model_saving_path + path_suff + 'new_big_delan_panda.torch'}
 
 # hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "ReLu", "b_init": 0.0001,
 #          "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
@@ -254,14 +254,14 @@ hyper = {'n_width': 128,
 #          'save_file': model_saving_path + path_suff + 'delan_panda3DOF_new_model.torch'}
 
 
-# tr_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_train_estimates.pkl'
-# test_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_test_estimates.pkl'
+tr_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_train_estimates.pkl'
+test_estimates_saving_path = 'data/' + robot_name + 'orig_model_' + path_suff + 'DeLaN_test_estimates.pkl'
 
 # tr_estimates_saving_path = 'data/' + robot_name + path_suff + 'DeLaN_new_model_train_estimates.pkl'
 # test_estimates_saving_path = 'data/' + robot_name  + path_suff + 'DeLaN_new_model_test_estimates.pkl'
 
-tr_estimates_saving_path = 'data/' + robot_name + path_suff + 'DeLaN_new_big_model_train_estimates.pkl'
-test_estimates_saving_path = 'data/' + robot_name  + path_suff + 'DeLaN_new_big_model_test_estimates.pkl'
+# tr_estimates_saving_path = 'data/' + robot_name + path_suff + 'DeLaN_new_big_model_train_estimates.pkl'
+# test_estimates_saving_path = 'data/' + robot_name  + path_suff + 'DeLaN_new_big_model_test_estimates.pkl'
 
 
 
