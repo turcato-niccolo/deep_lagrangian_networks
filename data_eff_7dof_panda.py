@@ -35,7 +35,7 @@ parser.add_argument('-robot_name',
                     help='Name of the robot.')
 parser.add_argument('-data_path',
                     type=str,
-                    default='robust_fl_with_gps/Simulated_robots/SympyBotics_sim/FE_panda/',
+                    default='./robust_fl_with_gps/Simulated_robots/Pybullet_sim/FE_panda/data/',
                     help='Path to the folder containing training and test dasets.')
 parser.add_argument('-saving_path',
                     type=str,
@@ -47,16 +47,12 @@ parser.add_argument('-model_saving_path',
                     help='Path to the destination folder for the generated files.')
 parser.add_argument('-training_file',
                     type=str,
-                    default='FE_panda_sim_tr.pkl',
+                    default='FE_panda_pybul_fwgn_tr.pkl',
                     help='Name of the file containing the train dataset.')
 parser.add_argument('-test_file',
                     type=str,
-                    default='FE_panda_sim_test.pkl',
+                    default='FE_panda_pybul_sum_of_sin_test.pkl',
                     help='Name of the file containing the test dataset.')
-parser.add_argument('-noised_targets_file',
-                    type=str,
-                    default='FE_panda_sim_train_test_targets_noised.pkl',
-                    help='Name of the file containing the noised targets.')
 parser.add_argument('-flg_load',
                     type=bool,
                     default=False,
@@ -171,23 +167,21 @@ acc_indices = range(2 * num_dof, 3 * num_dof)
 input_features_joint_list = [input_features] * num_dof
 
 # Read the dataset:
+X_test, Y_test, active_dims_list, data_frame_test = Project_FL_Utils.get_data_from_features(test_path,
+                                                                                            input_features,
+                                                                                            input_features_joint_list,
+                                                                                            output_feature,
+                                                                                            num_dof)
+
+if flg_noise:
+    output_feature = 'tau_noised'
+    path_suff += 'noised_'
+
 X_tr, Y_tr, active_dims_list, data_frame_tr = Project_FL_Utils.get_data_from_features(tr_path,
                                                                                       input_features,
                                                                                       input_features_joint_list,
                                                                                       output_feature,
                                                                                       num_dof)
-X_test, Y_test, _, data_frame_test = Project_FL_Utils.get_data_from_features(test_path,
-                                                                             input_features,
-                                                                             input_features_joint_list,
-                                                                             output_feature,
-                                                                             num_dof)
-
-if flg_noise:
-    noised_targets_file = data_path + noised_targets_file
-    Y_tr_noised, Y_test_noised = pkl.load(open(noised_targets_file, 'rb'))
-    Y_tr = Y_tr_noised
-    Y_test = Y_test_noised
-    path_suff += 'noised_'
 
 if downsampling > 1:
     path_suff += "downsampling_" + str(downsampling)

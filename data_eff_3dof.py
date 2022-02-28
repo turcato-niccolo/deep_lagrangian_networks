@@ -35,28 +35,24 @@ parser.add_argument('-robot_name',
                     help='Name of the robot.')
 parser.add_argument('-data_path',
                     type=str,
-                    default='robust_fl_with_gps/Simulated_robots/SympyBotics_sim/FE_panda/',
+                    default='./robust_fl_with_gps/Simulated_robots/Pybullet_sim/FE_panda/data/',
                     help='Path to the folder containing training and test dasets.')
 parser.add_argument('-saving_path',
                     type=str,
-                    default='data_efficiency/',
+                    default='./data_efficiency/',
                     help='Path to the destination folder for the generated files.')
 parser.add_argument('-model_saving_path',
                     type=str,
-                    default='data_efficiency/data/',
+                    default='./data/',
                     help='Path to the destination folder for the generated files.')
 parser.add_argument('-training_file',
                     type=str,
-                    default='FE_panda3DOF_sim_tr.pkl',
+                    default='FE_panda3DOF_pybul_fwgn_tr.pkl',
                     help='Name of the file containing the train dataset.')
 parser.add_argument('-test_file',
                     type=str,
-                    default='FE_panda3DOF_sim_test.pkl',
+                    default='FE_panda3DOF_pybul_sum_of_sin_test.pkl',
                     help='Name of the file containing the test dataset.')
-parser.add_argument('-noised_targets_file',
-                    type=str,
-                    default='FE_panda3DOF_sim_train_test_targets_noised.pkl',
-                    help='Name of the file containing the noised targets.')
 parser.add_argument('-flg_load',
                     type=bool,
                     default=False,
@@ -211,7 +207,7 @@ hyper = {'n_width': 64,
          'gain_output': 0.1,
          'learning_rate': 5.e-04,
          'weight_decay': 1.e-5,
-         'max_epoch': 150}
+         'max_epoch': 1000}
 
 # hyper = {"n_width": 128, "n_depth": 2, "diagonal_epsilon": 0.01, "activation": "ReLu", "b_init": 0.0001,
 #          "b_diag_init": 0.001, "w_init": "orthogonal", "gain_hidden": 1.4142135623730951, "gain_output": 0.1,
@@ -223,11 +219,13 @@ hyper = {'n_width': 64,
 num_data_tr = X_tr.shape[0]
 print('TRAIN: {}'.format(num_data_tr))
 
+efficiency_results = saving_path + 'orig_model_' + path_suff + 'data_efficiency_results_{}.pkl'.format(robot_name)
+
+
 #CALL function
-test_results = Utils.data_efficiency_test(hyper, X_tr, Y_tr, X_test, Y_test, k_repetition=10)
+test_results = Utils.data_efficiency_test(hyper, X_tr, Y_tr, X_test, Y_test,
+                                          efficiency_results_filename=efficiency_results, k_repetition=10)
 
 print(test_results)
 
 
-efficiency_results = saving_path + 'orig_model_' + path_suff + 'data_efficiency_results_{}.pkl'.format(robot_name)
-pkl.dump(test_results, open(efficiency_results, 'wb'))

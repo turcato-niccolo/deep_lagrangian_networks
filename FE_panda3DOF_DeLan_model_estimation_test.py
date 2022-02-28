@@ -72,10 +72,6 @@ parser.add_argument('-test_file',
                     type=str,
                     default='FE_panda3DOF_pybul_sum_of_sin_test.pkl',
                     help='Name of the file containing the test dataset.')
-parser.add_argument('-noised_targets_file',
-                    type=str,
-                    default='FE_panda3DOF_sim_train_test_targets_noised.pkl',
-                    help='Name of the file containing the noised targets.')
 parser.add_argument('-flg_load',
                     type=bool,
                     default=False,
